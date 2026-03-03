@@ -117,7 +117,79 @@ export function FullCurriculumPrintView() {
       <div className="space-y-12 page-break-before-always">
         <div className="mb-12">
           <h2 className="text-4xl font-bold mb-2 text-[#2563eb]">FPV Initiator Program</h2>
+          <p className="text-sm text-[#6b7280] mb-2 font-bold uppercase tracking-widest">{fpvProgramData.timeline}</p>
           <p className="text-xl text-[#4b5563]">{fpvProgramData.overview}</p>
+        </div>
+
+        {/* Instructor Manual Section in PDF */}
+        <div className="page-break-inside-avoid border-2 border-[#dc2626] p-8 rounded-xl mb-12">
+          <h3 className="text-2xl font-bold mb-6 text-[#dc2626] uppercase tracking-tight">Instructor Manual</h3>
+          
+          <div className="grid grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-bold text-[#1f2937] mb-2 text-sm uppercase tracking-wider">Program Philosophy</h4>
+                <p className="text-sm italic text-[#4b5563] border-[#dc2626] border-l-2 pl-4 mb-4">
+                  "{fpvProgramData.instructorManual.philosophy.corePrinciple}"
+                </p>
+                <ul className="text-xs space-y-1 text-[#374151]">
+                  {fpvProgramData.instructorManual.philosophy.objectives.map((obj, i) => (
+                    <li key={i}>• {obj}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-[#1f2937] mb-2 text-sm uppercase tracking-wider">Instructor Responsibilities</h4>
+                <ul className="text-xs space-y-1 text-[#374151]">
+                  {fpvProgramData.instructorManual.responsibilities.map((resp, i) => (
+                    <li key={i}>• {resp}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-bold text-[#1f2937] mb-2 text-sm uppercase tracking-wider">10-Day Intensive Schedule</h4>
+                <div className="space-y-2">
+                  {fpvProgramData.instructorManual.schedule.map((item, i) => (
+                    <div key={i} className="text-xs">
+                      <span className="font-bold text-[#2563eb]">{item.day}:</span> {item.focus}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-[#1f2937] mb-2 text-sm uppercase tracking-wider">Certification Requirements</h4>
+                <ul className="text-xs space-y-1 text-[#374151]">
+                  {fpvProgramData.instructorManual.certificationRequirements.map((req, i) => (
+                    <li key={i}>• {req}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Protocols & Safety Rules */}
+        <div className="page-break-inside-avoid grid grid-cols-2 gap-8 mb-12">
+          <div className="bg-[#fef2f2] p-6 rounded-xl">
+            <h4 className="font-bold text-[#dc2626] mb-4 text-sm uppercase tracking-wider">Safety Enforcement Rules</h4>
+            <ul className="text-xs space-y-2 text-[#991b1b]">
+              {fpvProgramData.instructorManual.safetyRules.map((rule, i) => (
+                <li key={i}>• {rule}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-[#f0f9ff] p-6 rounded-xl">
+            <h4 className="font-bold text-[#0369a1] mb-4 text-sm uppercase tracking-wider">Emergency Protocol</h4>
+            <p className="text-xs font-bold mb-2">Command: {fpvProgramData.instructorManual.protocols.emergency.freezeCommand}</p>
+            <ul className="text-xs space-y-1 text-[#075985]">
+              {fpvProgramData.instructorManual.protocols.emergency.crashProcedure.map((step, i) => (
+                <li key={i}>{i+1}. {step}</li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {fpvProgramData.modules.map((module, index) => (

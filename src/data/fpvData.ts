@@ -1,6 +1,89 @@
 export const fpvProgramData = {
   title: "FPV Initiator Program",
-  overview: "The 12-lesson FPV Initiator program is designed to introduce students and teachers to the exciting world of flying FPV drones. Students will learn the fundamentals of drone safety, flight mechanics, and radio control. They will also gain hands-on experience repairing and flying their own FPV drone.",
+  overview: "An intensive 10-day FPV Initiator program designed to transition students from zero experience to operational FPV competency. This program follows a strict safety-first philosophy, prioritizing simulator mastery before live flight.",
+  timeline: "10-Day Intensive (March 2 - March 11, 2026)",
+  instructorManual: {
+    philosophy: {
+      corePrinciple: "No student flies a real FPV drone until simulator competency is demonstrated.",
+      objectives: [
+        "Eliminate unsafe reflexes",
+        "Build correct throttle discipline",
+        "Develop emergency instinct",
+        "Enforce safety culture",
+        "Minimize equipment damage"
+      ]
+    },
+    responsibilities: [
+      "Conduct safety briefing every week",
+      "Inspect all batteries before use",
+      "Verify radio setup before simulator",
+      "Maintain training log",
+      "Enforce no-risk flying culture",
+      "Stop unsafe behavior immediately"
+    ],
+    equipment: {
+      simulator: [
+        "Laptop/PC",
+        "FPV simulator software (Liftoff, Velocidrone)",
+        "Real transmitter"
+      ],
+      practical: [
+        "5” training quad (durable frame)",
+        "Spare props",
+        "4–6 LiPo batteries per session",
+        "LiPo charger",
+        "Cones or markers",
+        "Fire extinguisher (Class ABC minimum)",
+        "First aid kit"
+      ]
+    },
+    schedule: [
+      { day: "Day 1-2", focus: "Foundation: Correct stick discipline and throttle control." },
+      { day: "Day 3-5", focus: "Simulator Mastery: Orientation recovery and emergency reflex." },
+      { day: "Day 6-8", focus: "Practical Flight (Certified Only): LOS hovering, short FPV flights, controlled circuits." },
+      { day: "Day 9-10", focus: "Operational Development: Precision landing, obstacle navigation, 5-minute continuous flight." }
+    ],
+    certificationRequirements: [
+      "10 minutes crash-free",
+      "Clean circuit pattern",
+      "Controlled landing",
+      "Emergency disarm reflex",
+      "Orientation recovery without panic"
+    ],
+    protocols: {
+      preFlight: [
+        "Inspect frame integrity",
+        "Verify motor screws",
+        "Confirm props tight",
+        "Check antenna secure",
+        "Confirm failsafe configured",
+        "Confirm battery voltage"
+      ],
+      emergency: {
+        freezeCommand: "LEVEL AND LAND",
+        crashProcedure: [
+          "Disarm",
+          "Disconnect battery",
+          "Wait 60 seconds",
+          "Inspect frame, motors, ESC, antenna",
+          "Never re-arm damaged aircraft"
+        ]
+      }
+    },
+    safetyRules: [
+      "Never fly near people",
+      "Never ignore low voltage warnings",
+      "Never leave damaged props installed",
+      "Never allow aggressive freestyle during training"
+    ],
+    graduationRequirements: [
+      "Complete simulator certification",
+      "Fly 5 real packs clean",
+      "Demonstrate emergency landing",
+      "Show LiPo handling competency",
+      "Complete mission planning exercise"
+    ]
+  },
   modules: [
     {
       id: "fpv-m1",
@@ -26,7 +109,21 @@ FPV stands for **First Person View**. It involves piloting a radio-controlled ai
 *   **Propellers**: Even small propellers can cause injury. Always disarm your drone when handling it.
 *   **Battery Safety**: LiPo batteries require special care. Never puncture them or leave them charging unattended.
 *   **Environment**: Always fly in a safe, open area away from people and pets.
-      `
+      `,
+      quiz: [
+        {
+          id: "fpv-m1-q1",
+          question: "What does FPV stand for?",
+          options: ["First Person View", "Flight Path Vector", "Fast Propeller Velocity", "Frequency Power Video"],
+          correctAnswer: 0
+        },
+        {
+          id: "fpv-m1-q2",
+          question: "Which component transmits the video from the drone?",
+          options: ["VRX", "Tx", "VTX", "ESC"],
+          correctAnswer: 2
+        }
+      ]
     },
     {
       id: "fpv-m2",
@@ -57,7 +154,21 @@ We configure switches for different functions:
 *   **Arming**: A safety switch to enable the motors.
 *   **Flight Modes**: Switching between Angle (Stabilized) and Acro (Manual) modes.
 *   **Turtle Mode**: A mode to flip the drone over if it lands upside down.
-      `
+      `,
+      quiz: [
+        {
+          id: "fpv-m2-q1",
+          question: "In Mode 2, what does the Left Stick control?",
+          options: ["Pitch and Roll", "Throttle and Yaw", "Throttle and Pitch", "Yaw and Roll"],
+          correctAnswer: 1
+        },
+        {
+          id: "fpv-m2-q2",
+          question: "What is 'Binding'?",
+          options: ["Gluing the frame together", "Linking the radio to the receiver", "Soldering the motors", "Charging the battery"],
+          correctAnswer: 1
+        }
+      ]
     },
     {
       id: "fpv-m3",
@@ -82,7 +193,21 @@ The hardest thing to learn first is simply staying in one spot.
 
 ### Challenge
 Spend at least 30 minutes in the simulator today. Try to hover inside a designated circle for 10 continuous seconds.
-      `
+      `,
+      quiz: [
+        {
+          id: "fpv-m3-q1",
+          question: "What is the primary benefit of simulator training?",
+          options: ["Better graphics", "Zero cost crashes", "Faster flight speed", "Louder sound"],
+          correctAnswer: 1
+        },
+        {
+          id: "fpv-m3-q2",
+          question: "What is 'Tail-In Hover'?",
+          options: ["Hovering with the front facing you", "Hovering with the back facing you", "Hovering upside down", "Hovering while spinning"],
+          correctAnswer: 1
+        }
+      ]
     },
     {
       id: "fpv-m4",
@@ -107,7 +232,21 @@ FPV drones use Lithium Polymer (LiPo) batteries. They offer high power density b
 ### Storage
 *   **Storage Voltage**: If not flying for >2 days, bring batteries to 3.8V per cell.
 *   **Do Not Drain**: Never fly a LiPo below 3.0V per cell, or it may be permanently damaged. Land when you see "Low Battery" (usually around 3.5V).
-      `
+      `,
+      quiz: [
+        {
+          id: "fpv-m4-q1",
+          question: "What is the nominal voltage of a 1S LiPo cell?",
+          options: ["1.5V", "3.7V", "4.2V", "12V"],
+          correctAnswer: 1
+        },
+        {
+          id: "fpv-m4-q2",
+          question: "What is the minimum safe voltage per cell to land at?",
+          options: ["2.0V", "3.0V", "3.5V", "4.0V"],
+          correctAnswer: 2
+        }
+      ]
     },
     {
       id: "fpv-m5",

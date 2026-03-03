@@ -78,6 +78,12 @@ Operators must comply with all Nigerian Civil Aviation Authority (NCAA) regulati
         question: 'What is the primary rule for battery management?',
         options: ['Store fully charged', 'Store empty', 'Ensure charged, balanced, and stored correctly', 'Discard after one use'],
         correctAnswer: 2
+      },
+      {
+        id: 'q2b',
+        question: 'What does VLOS stand for?',
+        options: ['Very Low Operating Speed', 'Visual Line of Sight', 'Vertical Landing Operation System', 'Virtual Link Operating System'],
+        correctAnswer: 1
       }
     ]
   },
@@ -181,6 +187,12 @@ A compact solution for rapid ISR missions.
         question: 'What is the flight endurance of the Arsenio drone?',
         options: ['2 hours', '4 hours', '6 hours', '8 hours'],
         correctAnswer: 3
+      },
+      {
+        id: 'q5',
+        question: 'Which drone is designed for precision strikes?',
+        options: ['Xander', 'Bfly', 'Damisa', 'Argini'],
+        correctAnswer: 2
       }
     ]
   },
@@ -249,6 +261,20 @@ In the event of a system failure or unexpected behavior, follow these protocols 
         `,
         duration: '10 min'
       }
+    ],
+    quiz: [
+      {
+        id: 'q6',
+        question: 'What is the minimum number of satellites recommended for GPS lock?',
+        options: ['3', '4', '6', '10'],
+        correctAnswer: 2
+      },
+      {
+        id: 'q7',
+        question: 'What should you do if you lose GPS lock?',
+        options: ['Panic', 'Switch to Altitude Hold and land ASAP', 'Fly higher to find signal', 'Turn off the controller'],
+        correctAnswer: 1
+      }
     ]
   },
   {
@@ -293,6 +319,77 @@ Precision calibration ensures accurate flight data and stable performance.
 - **Gimbal**: Calibrate for a level horizon in video feeds.
         `,
         duration: '20 min'
+      }
+    ],
+    quiz: [
+      {
+        id: 'q8',
+        question: 'When should you calibrate the compass?',
+        options: ['Before every flight', 'Only when moving >100km away or after interference', 'Once a year', 'Never'],
+        correctAnswer: 1
+      }
+    ]
+  },
+  {
+    id: 'advanced',
+    title: 'Advanced Maneuvers',
+    description: 'Master complex flight patterns and tactical operations.',
+    icon: Activity,
+    lessons: [
+      {
+        id: 'figure8',
+        title: 'Figure-8 Patterns',
+        content: `
+# Figure-8 Patterns
+
+The Figure-8 is a fundamental maneuver for demonstrating orientation mastery.
+
+## Execution
+1. **Entry**: Fly forward at a constant altitude.
+2. **Turn 1**: Initiate a coordinated turn to the left.
+3. **Cross**: Fly diagonally across your path.
+4. **Turn 2**: Initiate a coordinated turn to the right.
+5. **Exit**: Return to straight and level flight.
+
+## Key Points
+- Maintain constant altitude.
+- Keep speed consistent.
+- Ensure turns are smooth and coordinated (using both roll and yaw).
+        `,
+        duration: '15 min'
+      },
+      {
+        id: 'orbit',
+        title: 'Point of Interest Orbit',
+        content: `
+# Point of Interest (POI) Orbit
+
+Orbiting a target while keeping the camera focused on it is essential for surveillance.
+
+## Execution
+1. **Hover**: Position the drone facing the target.
+2. **Move Sideways**: Apply roll to move left or right.
+3. **Yaw**: Simultaneously apply yaw in the opposite direction to keep the camera on target.
+4. **Adjust**: Use pitch to maintain distance and throttle to maintain altitude.
+
+## Practice
+Start with a large radius and slow speed. As you get comfortable, tighten the circle and increase speed.
+        `,
+        duration: '20 min'
+      }
+    ],
+    quiz: [
+      {
+        id: 'q9',
+        question: 'What inputs are needed for a coordinated turn?',
+        options: ['Roll only', 'Yaw only', 'Roll and Yaw together', 'Pitch and Throttle'],
+        correctAnswer: 2
+      },
+      {
+        id: 'q10',
+        question: 'In a POI orbit, if you roll right, which way should you yaw to keep the target in view?',
+        options: ['Right', 'Left', 'Up', 'Down'],
+        correctAnswer: 1
       }
     ]
   }
