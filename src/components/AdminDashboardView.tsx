@@ -33,19 +33,17 @@ export function AdminDashboardView() {
   useEffect(() => {
     if (!db) return;
 
-    // Fetch CBT settings
-    const fetchSettings = async () => {
-      try {
-        const settingsRef = doc(db, 'settings', 'cbt');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-          setIsCBTEnabled(settingsSnap.data().enabled || false);
-        }
-      } catch (error) {
-        console.error("Error fetching settings:", error);
+    // Listen to CBT settings
+    const settingsRef = doc(db, 'settings', 'cbt');
+    const unsubscribeSettings = onSnapshot(settingsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setIsCBTEnabled(docSnap.data().enabled || false);
+      } else {
+        setIsCBTEnabled(false);
       }
-    };
-    fetchSettings();
+    }, (error) => {
+      console.error("Error listening to settings:", error);
+    });
 
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       const studentsData: Student[] = snapshot.docs.map(doc => {
@@ -92,7 +90,10 @@ export function AdminDashboardView() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeSettings();
+      unsubscribe();
+    };
   }, [totalLessons]);
 
   const filteredStudents = students.filter(student => {

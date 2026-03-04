@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Clock, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
 import { cbtData, CBTQuestion } from '../data/cbtData';
 import { useAuth } from '../contexts/AuthContext';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export function CBTView() {
@@ -16,26 +16,58 @@ export function CBTView() {
   const [score, setScore] = useState(0);
   const [isCBTEnabled, setIsCBTEnabled] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+
+  const checkStatus = async () => {
+    if (!db) {
+      setSettingsError("Database connection not available");
+      return;
+    }
+    setLoadingSettings(true);
+    setSettingsError(null);
+    try {
+      const snap = await getDoc(doc(db, 'settings', 'cbt'));
+      if (snap.exists()) {
+        setIsCBTEnabled(snap.data().enabled === true);
+      } else {
+        setIsCBTEnabled(false);
+      }
+    } catch (err: any) {
+      console.error("Manual check error:", err);
+      setSettingsError(err.message);
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      if (!db) {
-         setLoadingSettings(false);
-         return;
+    if (!db) {
+      setSettingsError("Database connection not available");
+      setLoadingSettings(false);
+      return;
+    }
+
+    const settingsRef = doc(db, 'settings', 'cbt');
+    
+    // Use onSnapshot for real-time updates
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+      setSettingsError(null);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setIsCBTEnabled(data.enabled === true);
+      } else {
+        // Document doesn't exist yet, default to false
+        setIsCBTEnabled(false);
       }
-      try {
-        const settingsRef = doc(db, 'settings', 'cbt');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-          setIsCBTEnabled(settingsSnap.data().enabled || false);
-        }
-      } catch (error) {
-        console.error("Error fetching CBT settings:", error);
-      } finally {
-        setLoadingSettings(false);
-      }
-    };
-    fetchSettings();
+      setLoadingSettings(false);
+    }, (error) => {
+      console.error("Error listening to CBT settings:", error);
+      setSettingsError(error.message);
+      // If permission denied or other error, default to false but stop loading
+      setLoadingSettings(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -163,10 +195,26 @@ export function CBTView() {
           </button>
           
           {!isCBTEnabled && user?.role !== 'admin' && !loadingSettings && (
-             <div className="flex items-center justify-center gap-2 text-amber-500 mt-4 text-sm bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
-               <AlertCircle size={16} />
-               <span>The final assessment is currently locked. It will be enabled by the administrator on exam day.</span>
+             <div className="flex flex-col items-center gap-2 mt-4 w-full">
+               <div className="flex items-center justify-center gap-2 text-amber-500 text-sm bg-amber-500/10 p-3 rounded-lg border border-amber-500/20 w-full">
+                 <AlertCircle size={16} />
+                 <span>The final assessment is currently locked. It will be enabled by the administrator on exam day.</span>
+               </div>
+               <button 
+                 onClick={checkStatus}
+                 className="text-xs text-zinc-500 hover:text-zinc-300 underline flex items-center gap-1"
+               >
+                 <RotateCcw size={12} />
+                 Refresh Status
+               </button>
              </div>
+          )}
+          
+          {settingsError && (
+            <div className="flex items-center justify-center gap-2 text-red-500 mt-4 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+              <AlertCircle size={16} />
+              <span>Error fetching exam status: {settingsError}</span>
+            </div>
           )}
         </motion.div>
       </div>
