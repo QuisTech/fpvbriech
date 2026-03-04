@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Lock, User, Shield, ArrowRight, Plane, LogIn, Mail, Hash } from 'lucide-react';
+import { Lock, User, Shield, ArrowRight, Plane, LogIn, Mail, Hash, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { formatServiceNumberToEmail, DEFAULT_PARTICIPANT_PASSWORD } from '../lib/participants';
 import { ParticipantSetup } from './ParticipantSetup';
 
 export function LoginView() {
-  const { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithFacebook, loginAsGuest } = useAuth();
+  const { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithFacebook, loginAsGuest, isDemo } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loginMode, setLoginMode] = useState<'email' | 'service'>('email');
   const [email, setEmail] = useState('');
@@ -99,10 +99,17 @@ export function LoginView() {
           </p>
         </div>
 
-        <div className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 space-y-6 shadow-2xl">
+        <div className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 space-y-6 shadow-2xl relative overflow-hidden">
           
+          {isDemo && (
+            <div className="absolute top-0 left-0 right-0 bg-yellow-500/10 border-b border-yellow-500/20 py-1.5 px-4 flex items-center justify-center gap-2">
+              <AlertTriangle size={14} className="text-yellow-500" />
+              <span className="text-xs font-medium text-yellow-500 uppercase tracking-wide">Demo Mode Active</span>
+            </div>
+          )}
+
           {/* Login Mode Toggle */}
-          <div className="flex p-1 bg-zinc-950 rounded-lg border border-zinc-800">
+          <div className={`flex p-1 bg-zinc-950 rounded-lg border border-zinc-800 ${isDemo ? 'mt-6' : ''}`}>
             <button
               onClick={() => setLoginMode('email')}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
@@ -270,8 +277,8 @@ export function LoginView() {
           </div>
         </div>
 
-        {/* Participant Setup Tool - Only visible in dev/setup phase */}
-        <ParticipantSetup />
+        {/* Participant Setup Tool - Only visible in dev/setup phase and if NOT in demo mode */}
+        {!isDemo && <ParticipantSetup />}
         
         <p className="text-center text-sm text-zinc-500">
           Protected by enterprise-grade security. <br />
