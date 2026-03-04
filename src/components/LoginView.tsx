@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import { Lock, User, Shield, ArrowRight, Plane, LogIn, Mail, Hash, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { formatServiceNumberToEmail, DEFAULT_PARTICIPANT_PASSWORD } from '../lib/participants';
-import { ParticipantSetup } from './ParticipantSetup';
 
 export function LoginView() {
   const { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithFacebook, loginAsGuest, isDemo } = useAuth();
@@ -277,9 +276,6 @@ export function LoginView() {
           </div>
         </div>
 
-        {/* Participant Setup Tool - Only visible in dev/setup phase and if NOT in demo mode */}
-        {!isDemo && <ParticipantSetup />}
-        
         <p className="text-center text-sm text-zinc-500">
           Protected by enterprise-grade security. <br />
           Authorized personnel only.

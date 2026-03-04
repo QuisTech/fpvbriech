@@ -10,6 +10,9 @@ import { AdminDashboardView } from './components/AdminDashboardView';
 import { curriculum } from './data/curriculum';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from './lib/firebase';
+
 function AppContent() {
   const { user, loading } = useAuth();
   const [currentModuleId, setCurrentModuleId] = useState<string | null>(null);
@@ -17,14 +20,52 @@ function AppContent() {
   const [isFPVSelected, setIsFPVSelected] = useState(false);
   const [isCBTSelected, setIsCBTSelected] = useState(false);
   const [isAdminSelected, setIsAdminSelected] = useState(false);
-  const [completedLessons, setCompletedLessons] = useState<string[]>(() => {
-    const saved = localStorage.getItem('briech-uas-progress');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
+  // Load progress from Firestore when user logs in
+  useEffect(() => {
+    async function loadProgress() {
+      if (user && db) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.id));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.completedLessons) {
+              setCompletedLessons(data.completedLessons);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading progress:", error);
+        }
+      } else {
+        // Fallback to local storage for guests or offline
+        const saved = localStorage.getItem('briech-uas-progress');
+        if (saved) {
+          setCompletedLessons(JSON.parse(saved));
+        }
+      }
+    }
+    loadProgress();
+  }, [user]);
+
+  // Sync progress to Firestore and LocalStorage
   useEffect(() => {
     localStorage.setItem('briech-uas-progress', JSON.stringify(completedLessons));
-  }, [completedLessons]);
+    
+    if (user && db) {
+      const saveToFirestore = async () => {
+        try {
+          await setDoc(doc(db, 'users', user.id), { 
+            completedLessons,
+            lastActive: new Date().toISOString()
+          }, { merge: true });
+        } catch (error) {
+          console.error("Error saving progress to Firestore:", error);
+        }
+      };
+      saveToFirestore();
+    }
+  }, [completedLessons, user]);
 
   if (loading) {
     return (

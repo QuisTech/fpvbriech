@@ -50,7 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeUserDoc: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Unsubscribe from previous user listener if any to prevent memory leaks
+      if (unsubscribeUserDoc) {
+        unsubscribeUserDoc();
+        unsubscribeUserDoc = undefined;
+      }
+
       if (firebaseUser) {
         try {
           if (db) {
@@ -58,67 +66,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userDocRef = doc(db, 'users', firebaseUser.uid);
             
             // Real-time listener for user document
-            const unsubscribeUserDoc = onSnapshot(userDocRef, async (docSnap) => {
+            unsubscribeUserDoc = onSnapshot(userDocRef, async (docSnap) => {
               if (docSnap.exists()) {
                 // User exists, set state
                 const userData = docSnap.data() as User;
                 setUser({ ...userData, id: firebaseUser.uid });
               } else {
-                // Only create if it really doesn't exist (and give it a moment if it's being created elsewhere)
-                // But for AuthContext, we need to set something.
-                
-                // If we are in the middle of a creation flow (like ParticipantSetup), 
-                // the doc might be created milliseconds later. 
-                // However, we can't wait forever.
-                
-                // Check if we already have a user state that looks valid to avoid overwriting with "New User" unnecessarily
-                // if we are just waiting for the doc.
-                
-                // For now, we'll stick to the original logic but just for the initial creation if needed,
-                // but since this is a listener, if it gets created later, we'll update!
-                
+                // New user logic (e.g. first time Google login)
                 const newUser: User = {
                   id: firebaseUser.uid,
                   email: firebaseUser.email || '',
                   name: firebaseUser.displayName || 'New User',
-                  role: 'student', // Default role
+                  role: (firebaseUser.email === 'michquis@gmail.com') ? 'admin' : 'student', // Auto-admin for specific email
                 };
                 
-                // CAUTION: Writing here might race with ParticipantSetup.
-                // Ideally, we only write if we are sure it's a NEW sign-up (e.g. from Google).
-                // But for email/pass, usually the registration flow handles creation.
-                
-                // Let's ONLY write if it's a Google/Facebook provider (providerData check)
-                // OR if we strictly need to. 
-                
-                // Actually, to be safe and avoid overwriting ParticipantSetup's work:
-                // We will NOT write to Firestore here immediately if it's missing.
-                // We will just set the local state. 
-                // AND we will try to write ONLY if it's a social login (which doesn't have a separate registration flow).
-                
+                // Check if social login to auto-create doc
+                // We check providerData to see if they signed in via Google/Facebook
                 const isSocial = firebaseUser.providerData.some(p => 
-                  p.providerId === 'google.com' || p.providerId === 'facebook.com'
+                  ['google.com', 'facebook.com'].includes(p.providerId)
                 );
 
+                // Only auto-create doc for social logins. 
+                // Email/password registration handles doc creation separately in registerWithEmail.
                 if (isSocial) {
-                   await setDoc(userDocRef, newUser);
+                   try {
+                     await setDoc(userDocRef, newUser, { merge: true });
+                   } catch (e) {
+                     console.error("Error creating user doc for social login:", e);
+                   }
                 }
                 
                 setUser(newUser);
               }
+              // Data loaded, stop loading
+              setLoading(false);
+            }, (error) => {
+               console.error("Firestore snapshot error:", error);
+               // Fallback to auth data if firestore fails
+               setUser({
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email || '',
+                  name: firebaseUser.displayName || 'User',
+                  role: 'student',
+               });
+               setLoading(false);
             });
-
-            // Store unsubscribe to clean up later if needed? 
-            // The main unsubscribe handles the auth listener, but this inner listener needs cleanup too.
-            // Since onAuthStateChanged can fire multiple times, we need to manage this subscription.
-            // But doing that inside useEffect is tricky without a ref.
-            
-            // SIMPLER APPROACH for this context:
-            // Just use onSnapshot and don't worry about the race condition for now, 
-            // BUT remove the `setDoc` call from the "else" block to prevent overwriting.
-            // If the doc doesn't exist, just show the Auth data.
-            // If it gets created (by ParticipantSetup), the snapshot will fire again and update the UI!
-
           } else {
              // Fallback if DB not initialized
              setUser({
@@ -127,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name: firebaseUser.displayName || 'User',
               role: 'student',
             });
+            setLoading(false);
           }
         } catch (error: any) {
           if (error.code === 'unavailable' || error.message?.includes('offline')) {
@@ -135,21 +128,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Error fetching user data:", error);
           }
           
-          // Fallback if Firestore fails (e.g. permission issues or offline)
+          // Fallback if Firestore fails
           setUser({
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             name: firebaseUser.displayName || 'User',
             role: 'student',
           });
+          setLoading(false);
         }
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeUserDoc) unsubscribeUserDoc();
+    };
   }, []);
 
   const loginWithGoogle = async () => {

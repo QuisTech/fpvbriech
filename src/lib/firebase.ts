@@ -35,5 +35,5 @@ if (firebaseConfig.apiKey) {
   console.warn("Firebase configuration missing. App running in demo/offline mode.");
 }
 
-export { app, auth, db, analytics, googleProvider, facebookProvider };
+export { app, auth, db, analytics, googleProvider, facebookProvider, firebaseConfig };
 export default app;

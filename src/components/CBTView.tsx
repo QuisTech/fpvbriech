@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Clock, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
 import { cbtData, CBTQuestion } from '../data/cbtData';
+import { useAuth } from '../contexts/AuthContext';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function CBTView() {
+  const { user } = useAuth();
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -51,7 +55,7 @@ export function CBTView() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     let correctCount = 0;
     cbtData.questions.forEach((q) => {
       if (answers[q.id] === q.correctAnswer) {
@@ -61,6 +65,18 @@ export function CBTView() {
     const finalScore = (correctCount / cbtData.questions.length) * 100;
     setScore(finalScore);
     setFinished(true);
+
+    if (user && db) {
+      try {
+        await setDoc(doc(db, 'users', user.id), {
+          cbtScore: finalScore,
+          cbtStatus: finalScore >= cbtData.passingScore ? 'passed' : 'failed',
+          cbtDate: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.error("Error saving CBT score:", error);
+      }
+    }
   };
 
   const formatTime = (seconds: number) => {

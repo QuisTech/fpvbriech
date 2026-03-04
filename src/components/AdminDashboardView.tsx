@@ -1,38 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Users, Search, Filter, Download, ChevronDown, MoreHorizontal, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { Users, Search, Filter, Download, ChevronDown, MoreHorizontal, CheckCircle, XCircle, Clock, AlertCircle, Settings } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { curriculum } from '../data/curriculum';
+import { ParticipantSetup } from './ParticipantSetup';
 
 interface Student {
   id: string;
   name: string;
   email: string;
+  role: string;
   status: 'active' | 'inactive' | 'pending';
   cbtScore: number | null;
   cbtStatus: 'passed' | 'failed' | 'not_started';
   fpvProgress: number;
   lastActive: string;
+  completedLessons?: string[];
 }
-
-const MOCK_STUDENTS: Student[] = [
-  { id: '1', name: 'Alex Johnson', email: 'alex.j@example.com', status: 'active', cbtScore: 85, cbtStatus: 'passed', fpvProgress: 60, lastActive: '2 hours ago' },
-  { id: '2', name: 'Sarah Connor', email: 'sarah.c@example.com', status: 'active', cbtScore: 92, cbtStatus: 'passed', fpvProgress: 80, lastActive: '1 day ago' },
-  { id: '3', name: 'Mike Ross', email: 'mike.r@example.com', status: 'pending', cbtScore: null, cbtStatus: 'not_started', fpvProgress: 0, lastActive: 'Never' },
-  { id: '4', name: 'Jessica Pearson', email: 'jessica.p@example.com', status: 'active', cbtScore: 65, cbtStatus: 'failed', fpvProgress: 45, lastActive: '3 hours ago' },
-  { id: '5', name: 'Harvey Specter', email: 'harvey.s@example.com', status: 'active', cbtScore: 98, cbtStatus: 'passed', fpvProgress: 100, lastActive: '5 mins ago' },
-  { id: '6', name: 'Louis Litt', email: 'louis.l@example.com', status: 'inactive', cbtScore: 40, cbtStatus: 'failed', fpvProgress: 20, lastActive: '1 week ago' },
-  { id: '7', name: 'Donna Paulsen', email: 'donna.p@example.com', status: 'active', cbtScore: 88, cbtStatus: 'passed', fpvProgress: 90, lastActive: '1 hour ago' },
-];
 
 export function AdminDashboardView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showSystemTools, setShowSystemTools] = useState(false);
 
-  const filteredStudents = MOCK_STUDENTS.filter(student => {
+  // Calculate total lessons for progress percentage
+  const totalLessons = curriculum.reduce((acc, module) => acc + module.lessons.length, 0);
+
+  useEffect(() => {
+    if (!db) return;
+
+    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const studentsData: Student[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        
+        // Calculate status based on lastActive
+        let status: 'active' | 'inactive' | 'pending' = 'active';
+        if (!data.lastActive) {
+          status = 'pending';
+        } else {
+          const lastActiveDate = new Date(data.lastActive);
+          const now = new Date();
+          const diffDays = Math.floor((now.getTime() - lastActiveDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays > 7) status = 'inactive';
+        }
+
+        // Calculate progress
+        const completedCount = data.completedLessons?.length || 0;
+        const progress = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+        return {
+          id: doc.id,
+          name: data.name || 'Unknown',
+          email: data.email || '',
+          role: data.role || 'student',
+          status,
+          cbtScore: data.cbtScore || null,
+          cbtStatus: data.cbtStatus || 'not_started',
+          fpvProgress: progress, // Using general progress as FPV progress proxy for now
+          lastActive: data.lastActive ? new Date(data.lastActive).toLocaleDateString() : 'Never',
+          completedLessons: data.completedLessons || []
+        };
+      });
+      
+      // Filter out admin users if needed, or keep them
+      setStudents(studentsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [totalLessons]);
+
+  const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  const handleExportCSV = () => {
+    const headers = ['Name', 'Email', 'Role', 'Status', 'CBT Score', 'CBT Status', 'FPV Progress (%)', 'Last Active'];
+    const csvContent = [
+      headers.join(','),
+      ...students.map(student => [
+        `"${student.name}"`,
+        `"${student.email}"`,
+        student.role,
+        student.status,
+        student.cbtScore || 'N/A',
+        student.cbtStatus,
+        student.fpvProgress,
+        `"${student.lastActive}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'student_records.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-white">Loading student data...</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -43,9 +122,19 @@ export function AdminDashboardView() {
           <p className="text-zinc-400">Manage and monitor student progress across all platforms.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors">
+          <button 
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
+          >
             <Download size={18} />
             Export CSV
+          </button>
+          <button 
+            onClick={() => setShowSystemTools(!showSystemTools)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${showSystemTools ? 'bg-zinc-700 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
+          >
+            <Settings size={18} />
+            System Tools
           </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
             <Users size={18} />
@@ -54,6 +143,24 @@ export function AdminDashboardView() {
         </div>
       </div>
 
+      {showSystemTools && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 overflow-hidden"
+        >
+          <h3 className="text-lg font-medium text-white mb-4">System Administration</h3>
+          <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800">
+            <p className="text-sm text-zinc-400 mb-4">
+              Use these tools to manage system-wide settings and data. 
+              <strong> Note:</strong> Initializing participants will use a secondary authentication instance to create accounts without logging you out.
+            </p>
+            <ParticipantSetup />
+          </div>
+        </motion.div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl">
@@ -61,9 +168,9 @@ export function AdminDashboardView() {
             <h3 className="text-zinc-400 font-medium">Total Students</h3>
             <Users className="text-blue-500" size={20} />
           </div>
-          <p className="text-3xl font-bold text-white">{MOCK_STUDENTS.length}</p>
+          <p className="text-3xl font-bold text-white">{students.length}</p>
           <p className="text-sm text-emerald-500 mt-2 flex items-center gap-1">
-            <span className="bg-emerald-500/10 px-1.5 py-0.5 rounded">+12%</span> from last month
+            <span className="bg-emerald-500/10 px-1.5 py-0.5 rounded">Live</span> Real-time data
           </p>
         </div>
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl">
@@ -72,17 +179,21 @@ export function AdminDashboardView() {
             <CheckCircle className="text-emerald-500" size={20} />
           </div>
           <p className="text-3xl font-bold text-white">
-            {Math.round((MOCK_STUDENTS.filter(s => s.cbtStatus === 'passed').length / MOCK_STUDENTS.filter(s => s.cbtStatus !== 'not_started').length) * 100)}%
+            {students.filter(s => s.cbtStatus !== 'not_started').length > 0 
+              ? Math.round((students.filter(s => s.cbtStatus === 'passed').length / students.filter(s => s.cbtStatus !== 'not_started').length) * 100) 
+              : 0}%
           </p>
           <p className="text-sm text-zinc-500 mt-2">Based on completed tests</p>
         </div>
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-zinc-400 font-medium">Avg. FPV Progress</h3>
+            <h3 className="text-zinc-400 font-medium">Avg. Progress</h3>
             <Clock className="text-purple-500" size={20} />
           </div>
           <p className="text-3xl font-bold text-white">
-            {Math.round(MOCK_STUDENTS.reduce((acc, s) => acc + s.fpvProgress, 0) / MOCK_STUDENTS.length)}%
+            {students.length > 0 
+              ? Math.round(students.reduce((acc, s) => acc + s.fpvProgress, 0) / students.length) 
+              : 0}%
           </p>
           <p className="text-sm text-zinc-500 mt-2">Across all modules</p>
         </div>
@@ -91,7 +202,9 @@ export function AdminDashboardView() {
             <h3 className="text-zinc-400 font-medium">Pending Review</h3>
             <AlertCircle className="text-amber-500" size={20} />
           </div>
-          <p className="text-3xl font-bold text-white">3</p>
+          <p className="text-3xl font-bold text-white">
+            {students.filter(s => s.status === 'pending').length}
+          </p>
           <p className="text-sm text-zinc-500 mt-2">Requires attention</p>
         </div>
       </div>
@@ -134,7 +247,7 @@ export function AdminDashboardView() {
                 <th className="px-6 py-4">Student</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">CBT Score</th>
-                <th className="px-6 py-4">FPV Progress</th>
+                <th className="px-6 py-4">Course Progress</th>
                 <th className="px-6 py-4">Last Active</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -170,7 +283,7 @@ export function AdminDashboardView() {
                         <span className={`font-mono font-medium ${
                           student.cbtStatus === 'passed' ? 'text-emerald-500' : 'text-red-500'
                         }`}>
-                          {student.cbtScore}%
+                          {student.cbtScore ? Math.round(student.cbtScore) : 0}%
                         </span>
                         {student.cbtStatus === 'passed' ? (
                           <CheckCircle size={14} className="text-emerald-500" />
