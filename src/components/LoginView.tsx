@@ -5,8 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatServiceNumberToEmail, DEFAULT_PARTICIPANT_PASSWORD } from '../lib/participants';
 
 export function LoginView() {
-  const { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithFacebook, loginAsGuest, isDemo } = useAuth();
+  const { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithFacebook, loginAsGuest, resetPassword, isDemo } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isReset, setIsReset] = useState(false);
   const [loginMode, setLoginMode] = useState<'email' | 'service'>('email');
   const [email, setEmail] = useState('');
   const [serviceNumber, setServiceNumber] = useState('');
@@ -14,13 +15,22 @@ export function LoginView() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
 
     try {
+      if (isReset) {
+        await resetPassword(email);
+        setSuccessMessage('Password reset email sent! Check your inbox.');
+        setLoading(false);
+        return;
+      }
+
       if (loginMode === 'service') {
         // Service Number Login Logic
         const formattedEmail = formatServiceNumberToEmail(serviceNumber);
@@ -89,12 +99,14 @@ export function LoginView() {
             <Plane size={32} />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {loginMode === 'service' ? 'Participant Login' : (isLogin ? 'Welcome Back' : 'Create Account')}
+            {isReset ? 'Reset Password' : (loginMode === 'service' ? 'Participant Login' : (isLogin ? 'Welcome Back' : 'Create Account'))}
           </h1>
           <p className="text-zinc-400">
-            {loginMode === 'service' 
-              ? 'Enter your Service Number to access the portal' 
-              : (isLogin ? 'Sign in to access your flight training portal' : 'Join the Briech UAS training program')}
+            {isReset 
+              ? 'Enter your email to receive a password reset link' 
+              : (loginMode === 'service' 
+                ? 'Enter your Service Number to access the portal' 
+                : (isLogin ? 'Sign in to access your flight training portal' : 'Join the Briech UAS training program'))}
           </p>
         </div>
 
@@ -107,29 +119,31 @@ export function LoginView() {
             </div>
           )}
 
-          {/* Login Mode Toggle */}
-          <div className={`flex p-1 bg-zinc-950 rounded-lg border border-zinc-800 ${isDemo ? 'mt-6' : ''}`}>
-            <button
-              onClick={() => setLoginMode('email')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                loginMode === 'email' 
-                  ? 'bg-zinc-800 text-white shadow-sm' 
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Email / Social
-            </button>
-            <button
-              onClick={() => setLoginMode('service')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                loginMode === 'service' 
-                  ? 'bg-blue-600/20 text-blue-400 shadow-sm border border-blue-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              Service Number
-            </button>
-          </div>
+          {/* Login Mode Toggle - Hide in Reset Mode */}
+          {!isReset && (
+            <div className={`flex p-1 bg-zinc-950 rounded-lg border border-zinc-800 ${isDemo ? 'mt-6' : ''}`}>
+              <button
+                onClick={() => setLoginMode('email')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                  loginMode === 'email' 
+                    ? 'bg-zinc-800 text-white shadow-sm' 
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                Email / Social
+              </button>
+              <button
+                onClick={() => setLoginMode('service')}
+                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                  loginMode === 'service' 
+                    ? 'bg-blue-600/20 text-blue-400 shadow-sm border border-blue-500/20' 
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                Service Number
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-lg text-sm text-center">
@@ -137,9 +151,16 @@ export function LoginView() {
             </div>
           )}
 
+          {successMessage && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-3 rounded-lg text-sm text-center">
+              {successMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             
-            {loginMode === 'email' && !isLogin && (
+            {/* Name Field - Only for Registration */}
+            {!isReset && loginMode === 'email' && !isLogin && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-300">Full Name</label>
                 <div className="relative">
@@ -156,7 +177,8 @@ export function LoginView() {
               </div>
             )}
 
-            {loginMode === 'email' ? (
+            {/* Email / Service Number Field */}
+            {(isReset || loginMode === 'email') ? (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-300">Email Address</label>
                 <div className="relative">
@@ -188,20 +210,38 @@ export function LoginView() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-300">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={loginMode === 'service' ? "Enter password (default: password123)" : "••••••••"}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                  required
-                />
+            {/* Password Field - Hide in Reset Mode */}
+            {!isReset && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-zinc-300">Password</label>
+                  {loginMode === 'email' && isLogin && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setIsReset(true);
+                        setError('');
+                        setSuccessMessage('');
+                      }}
+                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={loginMode === 'service' ? "Enter password (default: password123)" : "••••••••"}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               type="submit"
@@ -212,13 +252,28 @@ export function LoginView() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  {loginMode === 'service' ? 'Login with Service Number' : (isLogin ? 'Sign In' : 'Create Account')} <ArrowRight size={18} />
+                  {isReset ? 'Send Reset Link' : (loginMode === 'service' ? 'Login with Service Number' : (isLogin ? 'Sign In' : 'Create Account'))} 
+                  {!isReset && <ArrowRight size={18} />}
                 </>
               )}
             </button>
+            
+            {isReset && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsReset(false);
+                  setError('');
+                  setSuccessMessage('');
+                }}
+                className="w-full text-sm text-zinc-400 hover:text-white transition-colors mt-2"
+              >
+                Back to Login
+              </button>
+            )}
           </form>
 
-          {loginMode === 'email' && (
+          {!isReset && loginMode === 'email' && (
             <>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">

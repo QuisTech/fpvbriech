@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, ChevronRight, CheckCircle, BookOpen, MonitorPlay, GraduationCap, Shield, LogOut, User } from 'lucide-react';
+import { Menu, X, ChevronRight, CheckCircle, BookOpen, MonitorPlay, GraduationCap, Shield, LogOut, User, Key } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { curriculum } from '../data/curriculum';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,9 +36,23 @@ export function Layout({
   children
 }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, resetPassword } = useAuth();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const handleResetPassword = async () => {
+    if (user?.email) {
+      if (confirm(`Send password reset email to ${user.email}?`)) {
+        try {
+          await resetPassword(user.email);
+          alert('Password reset email sent! Please check your inbox.');
+        } catch (error) {
+          console.error(error);
+          alert('Failed to send reset email.');
+        }
+      }
+    }
+  };
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-100 font-sans overflow-hidden">
@@ -213,13 +227,22 @@ export function Layout({
                 <span className="text-xs text-zinc-500 capitalize">{user?.role || 'Guest'}</span>
               </div>
             </div>
-            <button
-              onClick={logout}
-              className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-              title="Sign Out"
-            >
-              <LogOut size={18} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleResetPassword}
+                className="p-2 text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                title="Reset Password"
+              >
+                <Key size={18} />
+              </button>
+              <button
+                onClick={logout}
+                className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                title="Sign Out"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           </div>
         </div>
       </motion.aside>

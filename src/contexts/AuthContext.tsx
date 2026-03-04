@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
+  sendPasswordResetEmail,
   GoogleAuthProvider,
   FacebookAuthProvider
 } from 'firebase/auth';
@@ -31,6 +32,7 @@ interface AuthContextType {
   loginWithFacebook: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   loginAsGuest: () => void;
 }
@@ -102,6 +104,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setLoading(false);
             }, (error) => {
                console.error("Firestore snapshot error:", error);
+               
+               if (error.code === 'resource-exhausted') {
+                 console.warn("Firestore quota exceeded. Using cached/basic auth data.");
+               }
+
                // Fallback to auth data if firestore fails
                setUser({
                   id: firebaseUser.uid,
@@ -270,6 +277,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    if (isDemo) {
+      // Simulate Password Reset in Demo Mode
+      console.log(`[Demo] Password reset email sent to ${email}`);
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return;
+    }
+
+    try {
+      if (!auth) throw new Error("Firebase auth not initialized");
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Password reset error:", error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       if (auth) {
@@ -299,6 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loginWithFacebook, 
       loginWithEmail, 
       registerWithEmail, 
+      resetPassword,
       logout, 
       loginAsGuest 
     }}>

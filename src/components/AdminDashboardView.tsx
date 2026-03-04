@@ -68,6 +68,13 @@ export function AdminDashboardView() {
       // Filter out admin users if needed, or keep them
       setStudents(studentsData);
       setLoading(false);
+    }, (error) => {
+      console.error("Firestore snapshot error:", error);
+      if (error.code === 'resource-exhausted') {
+        // Handle quota exceeded gracefully
+        setLoading(false);
+        // We could set an error state here to show a banner
+      }
     });
 
     return () => unsubscribe();

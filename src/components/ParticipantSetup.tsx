@@ -1,14 +1,125 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, getAuth } from 'firebase/auth';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, deleteDoc, query, where, writeBatch } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../lib/firebase';
 import { PARTICIPANTS, formatServiceNumberToEmail, DEFAULT_PARTICIPANT_PASSWORD } from '../lib/participants';
-import { ShieldCheck, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 
 export function ParticipantSetup() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const cleanupDuplicates = async () => {
+    if (!db) return;
+    setLoading(true);
+    setStatus({ type: 'info', message: 'Step 1/3: Scanning for duplicates...' });
+
+    try {
+      const usersRef = collection(db, 'users');
+      const snapshot = await getDocs(usersRef);
+      
+      setStatus({ type: 'info', message: `Step 2/3: Analyzing ${snapshot.size} records...` });
+      
+      const emailMap = new Map<string, any[]>();
+      
+      // Group by email
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.email) {
+          const email = data.email.toLowerCase();
+          if (!emailMap.has(email)) {
+            emailMap.set(email, []);
+          }
+          emailMap.get(email)?.push({ id: doc.id, ...data });
+        }
+      });
+
+      let deletedCount = 0;
+      let batch = writeBatch(db);
+      let batchOpCount = 0;
+      const BATCH_LIMIT = 400; // Safety margin below 500
+
+      // Find duplicates
+      const allDuplicates: any[] = [];
+      for (const [email, docs] of emailMap.entries()) {
+        if (docs.length > 1) {
+          console.log(`Found duplicates for ${email}:`, docs);
+          
+          // Sort to find the best candidate to keep
+          docs.sort((a, b) => {
+            const aMatches = a.id === a.uid;
+            const bMatches = b.id === b.uid;
+            
+            if (aMatches && !bMatches) return -1; // a comes first (keep)
+            if (!aMatches && bMatches) return 1; // b comes first (keep)
+            
+            return 0;
+          });
+
+          // Keep the first one, delete the rest
+          const toDelete = docs.slice(1);
+          allDuplicates.push(...toDelete);
+        }
+      }
+
+      if (allDuplicates.length === 0) {
+        setStatus({ 
+          type: 'success', 
+          message: `Scan complete. No duplicates found.` 
+        });
+        setLoading(false);
+        return;
+      }
+
+      setStatus({ type: 'info', message: `Step 3/3: Removing ${allDuplicates.length} duplicates in batches...` });
+
+      // Process deletions in chunks
+      for (let i = 0; i < allDuplicates.length; i++) {
+        const docToDelete = allDuplicates[i];
+        batch.delete(doc(db, 'users', docToDelete.id));
+        batchOpCount++;
+        deletedCount++;
+
+        // Commit if batch is full or this is the last item
+        if (batchOpCount >= BATCH_LIMIT || i === allDuplicates.length - 1) {
+          await batch.commit();
+          console.log(`Committed batch of ${batchOpCount} deletions.`);
+          
+          // Update status
+          setStatus({ 
+            type: 'info', 
+            message: `Step 3/3: Removed ${deletedCount}/${allDuplicates.length} duplicates...` 
+          });
+
+          // Reset batch
+          batch = writeBatch(db);
+          batchOpCount = 0;
+
+          // Small delay to prevent rate limiting
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      setStatus({ 
+        type: 'success', 
+        message: `Cleanup complete. Removed ${deletedCount} duplicate entries.` 
+      });
+
+    } catch (err: any) {
+      console.error('Cleanup failed:', err);
+      if (err.code === 'resource-exhausted') {
+        setStatus({ 
+          type: 'error', 
+          message: `Firebase Quota Exceeded. The daily write limit has been reached. Please wait until tomorrow (Pacific Time) for the quota to reset.` 
+        });
+      } else {
+        setStatus({ type: 'error', message: `Cleanup failed: ${err.message}` });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const initializeParticipants = async () => {
     if (!auth || !db) {
@@ -120,6 +231,15 @@ export function ParticipantSetup() {
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
           Initialize Participant Accounts
+        </button>
+
+        <button
+          onClick={cleanupDuplicates}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg text-sm transition-colors border border-red-900/50"
+        >
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+          Cleanup Duplicates
         </button>
 
         {status && (

@@ -52,7 +52,7 @@ function AppContent() {
   useEffect(() => {
     localStorage.setItem('briech-uas-progress', JSON.stringify(completedLessons));
     
-    if (user && db) {
+    if (user?.id && db) {
       const saveToFirestore = async () => {
         try {
           await setDoc(doc(db, 'users', user.id), { 
@@ -65,7 +65,7 @@ function AppContent() {
       };
       saveToFirestore();
     }
-  }, [completedLessons, user]);
+  }, [completedLessons, user?.id]);
 
   if (loading) {
     return (

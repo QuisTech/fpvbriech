@@ -73,8 +73,11 @@ export function CBTView() {
           cbtStatus: finalScore >= cbtData.passingScore ? 'passed' : 'failed',
           cbtDate: new Date().toISOString()
         }, { merge: true });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error saving CBT score:", error);
+        if (error.code === 'resource-exhausted') {
+          alert("Warning: Could not save your score to the server due to high traffic (Quota Exceeded). Please take a screenshot of this result as proof of completion.");
+        }
       }
     }
   };
