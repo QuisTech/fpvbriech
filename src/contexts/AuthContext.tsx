@@ -1,18 +1,34 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  User as FirebaseUser, 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  GoogleAuthProvider,
+  FacebookAuthProvider
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db, googleProvider, facebookProvider } from '../lib/firebase';
 
-interface User {
+export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'student' | 'guest';
   name: string;
+  role: 'admin' | 'student' | 'guest';
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, role: 'admin' | 'student') => Promise<void>;
-  loginAsGuest: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithFacebook: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  loginAsGuest: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,57 +38,162 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved user in localStorage (mock persistence)
-    const savedUser = localStorage.getItem('briech-uas-user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (!auth) {
+      console.warn("Auth not initialized (missing config). Skipping auth listener.");
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          if (db) {
+            // Check if user document exists in Firestore
+            const userDocRef = doc(db, 'users', firebaseUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+              // User exists, set state
+              const userData = userDocSnap.data() as User;
+              setUser({ ...userData, id: firebaseUser.uid });
+            } else {
+              // New user (e.g. from Google Sign In), create document
+              const newUser: User = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                name: firebaseUser.displayName || 'New User',
+                role: 'student', // Default role
+              };
+              await setDoc(userDocRef, newUser);
+              setUser(newUser);
+            }
+          } else {
+             // Fallback if DB not initialized
+             setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || 'User',
+              role: 'student',
+            });
+          }
+        } catch (error: any) {
+          if (error.code === 'unavailable' || error.message?.includes('offline')) {
+            console.warn("Firestore unavailable (offline mode): Using cached Auth profile.");
+          } else {
+            console.error("Error fetching user data:", error);
+          }
+          
+          // Fallback if Firestore fails (e.g. permission issues or offline)
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            name: firebaseUser.displayName || 'User',
+            role: 'student',
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, role: 'admin' | 'student') => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      role,
-      name: email.split('@')[0] || 'User'
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('briech-uas-user', JSON.stringify(newUser));
-    setLoading(false);
+  const checkFirebase = () => {
+    if (!auth || !db) {
+      throw new Error("Firebase is not configured. Please check your .env file.");
+    }
   };
 
-  const loginAsGuest = async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const guestUser: User = {
-      id: 'guest-123',
-      email: 'guest@example.com',
-      role: 'guest',
-      name: 'Guest User'
-    };
-    
-    setUser(guestUser);
-    localStorage.setItem('briech-uas-user', JSON.stringify(guestUser));
-    setLoading(false);
+  const loginWithGoogle = async () => {
+    try {
+      checkFirebase();
+      if (!googleProvider) throw new Error("Google provider not configured");
+      await signInWithPopup(auth!, googleProvider);
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw error;
+    }
+  };
+
+  const loginWithFacebook = async () => {
+    try {
+      checkFirebase();
+      if (!facebookProvider) throw new Error("Facebook provider not configured");
+      await signInWithPopup(auth!, facebookProvider);
+    } catch (error) {
+      console.error("Facebook login error:", error);
+      throw error;
+    }
+  };
+
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      checkFirebase();
+      await signInWithEmailAndPassword(auth!, email, password);
+    } catch (error) {
+      console.error("Email login error:", error);
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (email: string, password: string, name: string) => {
+    try {
+      checkFirebase();
+      const result = await createUserWithEmailAndPassword(auth!, email, password);
+      
+      // Update Auth Profile
+      await updateProfile(result.user, {
+        displayName: name
+      });
+
+      // Create user document in Firestore immediately
+      const newUser: User = {
+        id: result.user.uid,
+        email: email,
+        name: name,
+        role: 'student',
+      };
+      await setDoc(doc(db!, 'users', result.user.uid), newUser);
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setUser(null);
-    localStorage.removeItem('briech-uas-user');
-    setLoading(false);
+    try {
+      if (auth) {
+        await signOut(auth);
+      }
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const loginAsGuest = () => {
+    // Guest login remains client-side only for demo purposes
+    setUser({
+      id: 'guest',
+      email: '',
+      name: 'Guest User',
+      role: 'guest',
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginAsGuest, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      loginWithGoogle, 
+      loginWithFacebook, 
+      loginWithEmail, 
+      registerWithEmail, 
+      logout, 
+      loginAsGuest 
+    }}>
       {children}
     </AuthContext.Provider>
   );
