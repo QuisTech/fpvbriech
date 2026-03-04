@@ -133,13 +133,22 @@ export function AdminDashboardView() {
   };
 
   const toggleCBT = async () => {
+    const previousState = isCBTEnabled;
+    const newState = !previousState;
+    
+    // Optimistic UI update
+    setIsCBTEnabled(newState);
+    
     try {
-      const newState = !isCBTEnabled;
-      setIsCBTEnabled(newState);
-      await setDoc(doc(db, 'settings', 'cbt'), { enabled: newState }, { merge: true });
-    } catch (error) {
+      // Use Promise.race to timeout pending writes if the backend is silently hanging (offline/quota issue)
+      await Promise.race([
+        setDoc(doc(db, 'settings', 'cbt'), { enabled: newState }, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout or quota exceeded')), 5000))
+      ]);
+    } catch (error: any) {
       console.error("Error updating CBT settings:", error);
-      setIsCBTEnabled(!isCBTEnabled); // Revert on error
+      setIsCBTEnabled(previousState); // Revert to previous state properly
+      alert(`Failed to update assessment status: ${error.message || 'Unknown error'}. Your changes were not saved.`);
     }
   };
 
