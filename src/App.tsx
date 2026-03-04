@@ -25,17 +25,30 @@ function AppContent() {
   // Load progress from Firestore when user logs in
   useEffect(() => {
     async function loadProgress() {
-      if (user && db) {
+      if (user?.id && db) {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.id));
           if (userDoc.exists()) {
             const data = userDoc.data();
             if (data.completedLessons) {
-              setCompletedLessons(data.completedLessons);
+              // Only update if different to avoid loops
+              setCompletedLessons(prev => {
+                const isDifferent = 
+                  data.completedLessons.length !== prev.length || 
+                  !data.completedLessons.every((val: string, index: number) => val === prev[index]);
+                return isDifferent ? data.completedLessons : prev;
+              });
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error loading progress:", error);
+          if (error.code === 'resource-exhausted') {
+             // Fallback to local storage if quota exceeded
+             const saved = localStorage.getItem('briech-uas-progress');
+             if (saved) {
+               setCompletedLessons(JSON.parse(saved));
+             }
+          }
         }
       } else {
         // Fallback to local storage for guests or offline
@@ -46,7 +59,7 @@ function AppContent() {
       }
     }
     loadProgress();
-  }, [user]);
+  }, [user?.id]); // Only re-run if user ID changes, not on every user object update
 
   // Sync progress to Firestore and LocalStorage
   useEffect(() => {
@@ -59,8 +72,10 @@ function AppContent() {
             completedLessons,
             lastActive: new Date().toISOString()
           }, { merge: true });
-        } catch (error) {
-          console.error("Error saving progress to Firestore:", error);
+        } catch (error: any) {
+          if (error.code !== 'resource-exhausted') {
+            console.error("Error saving progress to Firestore:", error);
+          }
         }
       };
       saveToFirestore();

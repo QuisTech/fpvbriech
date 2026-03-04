@@ -167,6 +167,16 @@ export function ParticipantSetup() {
 
           createdCount++;
         } catch (err: any) {
+          if (err.code === 'resource-exhausted') {
+            setStatus({ 
+              type: 'error', 
+              message: `Firebase Quota Exceeded. The daily write limit has been reached. Aborting initialization.` 
+            });
+            setLoading(false);
+            await deleteApp(secondaryApp);
+            return;
+          }
+
           if (err.code === 'auth/email-already-in-use') {
             // Account exists, try to repair it by signing in (secondary auth) and updating Firestore
             try {

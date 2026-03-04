@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Users, Search, Filter, Download, ChevronDown, MoreHorizontal, CheckCircle, XCircle, Clock, AlertCircle, Settings } from 'lucide-react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { curriculum } from '../data/curriculum';
 import { ParticipantSetup } from './ParticipantSetup';
@@ -25,12 +25,27 @@ export function AdminDashboardView() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSystemTools, setShowSystemTools] = useState(false);
+  const [isCBTEnabled, setIsCBTEnabled] = useState(false);
 
   // Calculate total lessons for progress percentage
   const totalLessons = curriculum.reduce((acc, module) => acc + module.lessons.length, 0);
 
   useEffect(() => {
     if (!db) return;
+
+    // Fetch CBT settings
+    const fetchSettings = async () => {
+      try {
+        const settingsRef = doc(db, 'settings', 'cbt');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+          setIsCBTEnabled(settingsSnap.data().enabled || false);
+        }
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSettings();
 
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       const studentsData: Student[] = snapshot.docs.map(doc => {
@@ -71,9 +86,9 @@ export function AdminDashboardView() {
     }, (error) => {
       console.error("Firestore snapshot error:", error);
       if (error.code === 'resource-exhausted') {
-        // Handle quota exceeded gracefully
         setLoading(false);
-        // We could set an error state here to show a banner
+        // Set empty students list or keep previous data to prevent crash
+        // Optionally set an error flag to display UI feedback
       }
     });
 
@@ -116,6 +131,17 @@ export function AdminDashboardView() {
     }
   };
 
+  const toggleCBT = async () => {
+    try {
+      const newState = !isCBTEnabled;
+      setIsCBTEnabled(newState);
+      await setDoc(doc(db, 'settings', 'cbt'), { enabled: newState }, { merge: true });
+    } catch (error) {
+      console.error("Error updating CBT settings:", error);
+      setIsCBTEnabled(!isCBTEnabled); // Revert on error
+    }
+  };
+
   if (loading) {
     return <div className="text-white">Loading student data...</div>;
   }
@@ -155,15 +181,39 @@ export function AdminDashboardView() {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 overflow-hidden"
+          className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 overflow-hidden space-y-6"
         >
-          <h3 className="text-lg font-medium text-white mb-4">System Administration</h3>
-          <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800">
-            <p className="text-sm text-zinc-400 mb-4">
-              Use these tools to manage system-wide settings and data. 
-              <strong> Note:</strong> Initializing participants will use a secondary authentication instance to create accounts without logging you out.
-            </p>
-            <ParticipantSetup />
+          <div>
+            <h3 className="text-lg font-medium text-white mb-4">Exam Controls</h3>
+            <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center justify-between">
+              <div>
+                <h4 className="text-white font-medium">Enable CBT Access</h4>
+                <p className="text-sm text-zinc-400">Allow students to start the final assessment. Keep disabled until exam day.</p>
+              </div>
+              <button
+                onClick={toggleCBT}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
+                  isCBTEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isCBTEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium text-white mb-4">System Administration</h3>
+            <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800">
+              <p className="text-sm text-zinc-400 mb-4">
+                Use these tools to manage system-wide settings and data. 
+                <strong> Note:</strong> Initializing participants will use a secondary authentication instance to create accounts without logging you out.
+              </p>
+              <ParticipantSetup />
+            </div>
           </div>
         </motion.div>
       )}

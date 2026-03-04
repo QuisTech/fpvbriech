@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Clock, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
 import { cbtData, CBTQuestion } from '../data/cbtData';
 import { useAuth } from '../contexts/AuthContext';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export function CBTView() {
@@ -14,6 +14,29 @@ export function CBTView() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [timeLeft, setTimeLeft] = useState(cbtData.durationMinutes * 60);
   const [score, setScore] = useState(0);
+  const [isCBTEnabled, setIsCBTEnabled] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!db) {
+         setLoadingSettings(false);
+         return;
+      }
+      try {
+        const settingsRef = doc(db, 'settings', 'cbt');
+        const settingsSnap = await getDoc(settingsRef);
+        if (settingsSnap.exists()) {
+          setIsCBTEnabled(settingsSnap.data().enabled || false);
+        }
+      } catch (error) {
+        console.error("Error fetching CBT settings:", error);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -124,10 +147,27 @@ export function CBTView() {
 
           <button
             onClick={handleStart}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            disabled={loadingSettings || (!isCBTEnabled && user?.role !== 'admin')}
+            className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform ${
+              loadingSettings || (!isCBTEnabled && user?.role !== 'admin')
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-[1.02] active:scale-[0.98]'
+            }`}
           >
-            Start Assessment
+            {loadingSettings 
+              ? 'Loading Status...' 
+              : !isCBTEnabled && user?.role !== 'admin' 
+                ? 'Assessment Locked' 
+                : 'Start Assessment'
+            }
           </button>
+          
+          {!isCBTEnabled && user?.role !== 'admin' && !loadingSettings && (
+             <div className="flex items-center justify-center gap-2 text-amber-500 mt-4 text-sm bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+               <AlertCircle size={16} />
+               <span>The final assessment is currently locked. It will be enabled by the administrator on exam day.</span>
+             </div>
+          )}
         </motion.div>
       </div>
     );
