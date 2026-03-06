@@ -12,8 +12,10 @@ interface Student {
   email: string;
   role: string;
   status: 'active' | 'inactive' | 'pending';
-  cbtScore: number | null;
-  cbtStatus: 'passed' | 'failed' | 'not_started';
+  cbt1Score: number | null;
+  cbt1Status: 'passed' | 'failed' | 'not_started';
+  cbt2Score: number | null;
+  cbt2Status: 'passed' | 'failed' | 'not_started';
   fpvProgress: number;
   lastActive: string;
   completedLessons?: string[];
@@ -25,7 +27,8 @@ export function AdminDashboardView() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSystemTools, setShowSystemTools] = useState(false);
-  const [isCBTEnabled, setIsCBTEnabled] = useState(false);
+  const [isCBTPart1Enabled, setIsCBTPart1Enabled] = useState(false);
+  const [isCBTPart2Enabled, setIsCBTPart2Enabled] = useState(false);
 
   // Calculate total lessons for progress percentage
   const totalLessons = curriculum.reduce((acc, module) => acc + module.lessons.length, 0);
@@ -37,9 +40,11 @@ export function AdminDashboardView() {
     const settingsRef = doc(db, 'settings', 'cbt');
     const unsubscribeSettings = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
-        setIsCBTEnabled(docSnap.data().enabled || false);
+        setIsCBTPart1Enabled(docSnap.data().part1Enabled || false);
+        setIsCBTPart2Enabled(docSnap.data().part2Enabled || false);
       } else {
-        setIsCBTEnabled(false);
+        setIsCBTPart1Enabled(false);
+        setIsCBTPart2Enabled(false);
       }
     }, (error) => {
       console.error("Error listening to settings:", error);
@@ -70,8 +75,10 @@ export function AdminDashboardView() {
           email: data.email || '',
           role: data.role || 'student',
           status,
-          cbtScore: data.cbtScore || null,
-          cbtStatus: data.cbtStatus || 'not_started',
+          cbt1Score: data.cbt1Score !== undefined ? data.cbt1Score : null,
+          cbt1Status: data.cbt1Status || 'not_started',
+          cbt2Score: data.cbt2Score !== undefined ? data.cbt2Score : null,
+          cbt2Status: data.cbt2Status || 'not_started',
           fpvProgress: progress, // Using general progress as FPV progress proxy for now
           lastActive: data.lastActive ? new Date(data.lastActive).toLocaleDateString() : 'Never',
           completedLessons: data.completedLessons || []
@@ -104,7 +111,7 @@ export function AdminDashboardView() {
   });
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Email', 'Role', 'Status', 'CBT Score', 'CBT Status', 'FPV Progress (%)', 'Last Active'];
+    const headers = ['Name', 'Email', 'Role', 'Status', 'CBT 1 Score', 'CBT 1 Status', 'CBT 2 Score', 'CBT 2 Status', 'FPV Progress (%)', 'Last Active'];
     const csvContent = [
       headers.join(','),
       ...students.map(student => [
@@ -112,8 +119,10 @@ export function AdminDashboardView() {
         `"${student.email}"`,
         student.role,
         student.status,
-        student.cbtScore || 'N/A',
-        student.cbtStatus,
+        student.cbt1Score !== null ? student.cbt1Score : 'N/A',
+        student.cbt1Status,
+        student.cbt2Score !== null ? student.cbt2Score : 'N/A',
+        student.cbt2Status,
         student.fpvProgress,
         `"${student.lastActive}"`
       ].join(','))
@@ -132,23 +141,35 @@ export function AdminDashboardView() {
     }
   };
 
-  const toggleCBT = async () => {
-    const previousState = isCBTEnabled;
+  const toggleCBTPart1 = async () => {
+    const previousState = isCBTPart1Enabled;
     const newState = !previousState;
-    
-    // Optimistic UI update
-    setIsCBTEnabled(newState);
-    
+    setIsCBTPart1Enabled(newState);
     try {
-      // Use Promise.race to timeout pending writes if the backend is silently hanging (offline/quota issue)
       await Promise.race([
-        setDoc(doc(db, 'settings', 'cbt'), { enabled: newState }, { merge: true }),
+        setDoc(doc(db, 'settings', 'cbt'), { part1Enabled: newState }, { merge: true }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout or quota exceeded')), 5000))
       ]);
     } catch (error: any) {
-      console.error("Error updating CBT settings:", error);
-      setIsCBTEnabled(previousState); // Revert to previous state properly
-      alert(`Failed to update assessment status: ${error.message || 'Unknown error'}. Your changes were not saved.`);
+      console.error("Error updating CBT 1 settings:", error);
+      setIsCBTPart1Enabled(previousState);
+      alert(`Failed to update Part 1 status: ${error.message || 'Unknown error'}. Your changes were not saved.`);
+    }
+  };
+
+  const toggleCBTPart2 = async () => {
+    const previousState = isCBTPart2Enabled;
+    const newState = !previousState;
+    setIsCBTPart2Enabled(newState);
+    try {
+      await Promise.race([
+        setDoc(doc(db, 'settings', 'cbt'), { part2Enabled: newState }, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout or quota exceeded')), 5000))
+      ]);
+    } catch (error: any) {
+      console.error("Error updating CBT 2 settings:", error);
+      setIsCBTPart2Enabled(previousState);
+      alert(`Failed to update Part 2 status: ${error.message || 'Unknown error'}. Your changes were not saved.`);
     }
   };
 
@@ -195,23 +216,44 @@ export function AdminDashboardView() {
         >
           <div>
             <h3 className="text-lg font-medium text-white mb-4">Exam Controls</h3>
-            <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center justify-between">
-              <div>
-                <h4 className="text-white font-medium">Enable CBT Access</h4>
-                <p className="text-sm text-zinc-400">Allow students to start the final assessment. Keep disabled until exam day.</p>
-              </div>
-              <button
-                onClick={toggleCBT}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
-                  isCBTEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isCBTEnabled ? 'translate-x-6' : 'translate-x-1'
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center justify-between">
+                <div>
+                  <h4 className="text-white font-medium">Part 1 CBT</h4>
+                  <p className="text-sm text-zinc-400">Allow access to Part 1.</p>
+                </div>
+                <button
+                  onClick={toggleCBTPart1}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
+                    isCBTPart1Enabled ? 'bg-emerald-500' : 'bg-zinc-700'
                   }`}
-                />
-              </button>
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isCBTPart1Enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center justify-between">
+                <div>
+                  <h4 className="text-white font-medium">Part 2 CBT</h4>
+                  <p className="text-sm text-zinc-400">Allow access to Part 2.</p>
+                </div>
+                <button
+                  onClick={toggleCBTPart2}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
+                    isCBTPart2Enabled ? 'bg-emerald-500' : 'bg-zinc-700'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isCBTPart2Enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -246,11 +288,11 @@ export function AdminDashboardView() {
             <CheckCircle className="text-emerald-500" size={20} />
           </div>
           <p className="text-3xl font-bold text-white">
-            {students.filter(s => s.cbtStatus !== 'not_started').length > 0 
-              ? Math.round((students.filter(s => s.cbtStatus === 'passed').length / students.filter(s => s.cbtStatus !== 'not_started').length) * 100) 
+            {students.filter(s => s.cbt1Status !== 'not_started' || s.cbt2Status !== 'not_started').length > 0 
+              ? Math.round((students.filter(s => s.cbt1Status === 'passed' && s.cbt2Status === 'passed').length / students.filter(s => s.cbt1Status !== 'not_started' || s.cbt2Status !== 'not_started').length) * 100) 
               : 0}%
           </p>
-          <p className="text-sm text-zinc-500 mt-2">Based on completed tests</p>
+          <p className="text-sm text-zinc-500 mt-2">Passed both tests</p>
         </div>
         <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl">
           <div className="flex items-center justify-between mb-4">
@@ -313,7 +355,8 @@ export function AdminDashboardView() {
               <tr className="bg-zinc-900/80 border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-medium">
                 <th className="px-6 py-4">Student</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">CBT Score</th>
+                <th className="px-6 py-4">CBT 1 Score</th>
+                <th className="px-6 py-4">CBT 2 Score</th>
                 <th className="px-6 py-4">Course Progress</th>
                 <th className="px-6 py-4">Last Active</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -343,16 +386,34 @@ export function AdminDashboardView() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    {student.cbtStatus === 'not_started' ? (
+                    {student.cbt1Status === 'not_started' ? (
                       <span className="text-zinc-600 italic">Not Started</span>
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className={`font-mono font-medium ${
-                          student.cbtStatus === 'passed' ? 'text-emerald-500' : 'text-red-500'
+                          student.cbt1Status === 'passed' ? 'text-emerald-500' : 'text-red-500'
                         }`}>
-                          {student.cbtScore ? Math.round(student.cbtScore) : 0}%
+                          {student.cbt1Score ? Math.round(student.cbt1Score) : 0}%
                         </span>
-                        {student.cbtStatus === 'passed' ? (
+                        {student.cbt1Status === 'passed' ? (
+                          <CheckCircle size={14} className="text-emerald-500" />
+                        ) : (
+                          <XCircle size={14} className="text-red-500" />
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {student.cbt2Status === 'not_started' ? (
+                      <span className="text-zinc-600 italic">Not Started</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className={`font-mono font-medium ${
+                          student.cbt2Status === 'passed' ? 'text-emerald-500' : 'text-red-500'
+                        }`}>
+                          {student.cbt2Score ? Math.round(student.cbt2Score) : 0}%
+                        </span>
+                        {student.cbt2Status === 'passed' ? (
                           <CheckCircle size={14} className="text-emerald-500" />
                         ) : (
                           <XCircle size={14} className="text-red-500" />

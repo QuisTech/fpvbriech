@@ -2,255 +2,106 @@ export interface CBTQuestion {
   id: string;
   question: string;
   options: string[];
-  correctAnswer: number; // Index of the correct option
+  correctAnswer: number;
   category: 'Technical' | 'Theoretical' | 'Safety' | 'Regulations';
 }
 
-export const cbtData = {
-  title: "General Safety in FPV Operations CBT",
-  description: "This assessment evaluates your knowledge on FPV drone safety principles, risk management, regulations, and operational best practices.",
+export const cbtDataPart1 = {
+  title: "Part 1: Basic FPV Principles & Safety",
+  description: "This assessment covers the fundamental safety, technical principles, and regulatory knowledge required for FPV operations.",
   durationMinutes: 45,
   passingScore: 70,
   questions: [
-    {
-      id: 'cbt-1',
-      question: 'What are the three major variables that the FPV Drone Safety System is based on?',
-      options: [
-        'Speed, Altitude, and Battery Life',
-        'Environment, Machine, and Human Being',
-        'Frame, Motors, and Propellers',
-        'Weather, Obstacles, and Regulations'
-      ],
-      correctAnswer: 1,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-2',
-      question: 'According to studies in aviation, what percentage of accidents are typically linked to human error?',
-      options: [
-        'Up to 30%',
-        'About 50%',
-        'Up to 70% or more',
-        '100%'
-      ],
-      correctAnswer: 2,
-      category: 'Theoretical'
-    },
-    {
-      id: 'cbt-3',
-      question: 'What is the nominal and maximum voltage per cell for a standard LiPo battery?',
-      options: [
-        '3.3v nominal, 4.0v maximum',
-        '3.7v nominal, 4.2v maximum',
-        '4.5v nominal, 5.0v maximum',
-        '3.0v nominal, 3.7v maximum'
-      ],
-      correctAnswer: 1,
-      category: 'Technical'
-    },
-    {
-      id: 'cbt-4',
-      question: 'According to James Reason\'s theory of human error, accidents happen when:',
-      options: [
-        'Equipment malfunctions randomly.',
-        'Weather conditions suddenly change.',
-        'Multiple safety barriers fail.',
-        'Pilots fly in manual mode.'
-      ],
-      correctAnswer: 2,
-      category: 'Theoretical'
-    },
-    {
-      id: 'cbt-5',
-      question: 'Which of the following is NOT considered a common human error in FPV flying?',
-      options: [
-        'Flying beyond skill level',
-        'Ignoring battery limits',
-        'Using simulator practice',
-        'Overconfidence'
-      ],
-      correctAnswer: 2,
-      category: 'Theoretical'
-    },
-    {
-      id: 'cbt-6',
-      question: 'Which organization enforces drone regulations in Nigeria?',
-      options: [
-        'Federal Aviation Administration (FAA)',
-        'International Civil Aviation Organization (ICAO)',
-        'Nigerian Civil Aviation Authority (NCAA)',
-        'Briech UAS Academy'
-      ],
-      correctAnswer: 2,
-      category: 'Regulations'
-    },
-    {
-      id: 'cbt-7',
-      question: 'In the IMSAFE model for assessing personal safety before a flight, what does the "S" stand for?',
-      options: [
-        'Skill - Am I skilled enough?',
-        'Stress - Am I distracted or worried?',
-        'Sickness - Am I feeling ill?',
-        'Sleep - Did I get enough sleep?'
-      ],
-      correctAnswer: 1,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-8',
-      question: 'If you answer "Yes" to any unsafe condition in the IMSAFE checklist, what is the required action?',
-      options: [
-        'Fly carefully and close to the ground.',
-        'Have a visual observer watch the drone.',
-        'Do Not Fly.',
-        'Take a 10-minute break before flying.'
-      ],
-      correctAnswer: 2,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-9',
-      question: 'Whose responsibility is it to ensure the drone maintains a safe distance from people and avoids crowds?',
-      options: [
-        'The Mission Coordinator',
-        'The Technician',
-        'The Pilot',
-        'The Visual Observer'
-      ],
-      correctAnswer: 2,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-10',
-      question: 'Before arming the drone, which of the following system setups must be verified?',
-      options: [
-        'Correct flight mode, VTX channel, and OSD information',
-        'Battery brand and color',
-        'Wind speed at 100 meters above ground',
-        'The number of people watching'
-      ],
-      correctAnswer: 0,
-      category: 'Technical'
-    },
-    {
-      id: 'cbt-11',
-      question: 'When making a Go / No-Go decision, what should you do if you are unsure if the flight is safe?',
-      options: [
-        'Ask a bystander for their opinion.',
-        'Perform a quick test flight anyway.',
-        'NO GO.',
-        'Switch to a smaller battery.'
-      ],
-      correctAnswer: 2,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-12',
-      question: 'Which of the following is considered a major environmental risk that can cause issues for FPV drones?',
-      options: [
-        'Strong GPS signals',
-        'Magnetic interference',
-        'Clear visibility',
-        'Low temperatures'
-      ],
-      correctAnswer: 1,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-13',
-      question: 'Which of the following describes a critical battery safety rule for handling FPV LiPo batteries?',
-      options: [
-        'Always discharge them completely to 0v.',
-        'Store them in any standard plastic container.',
-        'Never overcharge and store in fireproof bags.',
-        'Charge them immediately after a crash.'
-      ],
-      correctAnswer: 2,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-14',
-      question: 'A strong safety culture in the FPV drone community includes:',
-      options: [
-        'Hiding mistakes to avoid embarrassment',
-        'Reporting incidents and sharing lessons learned',
-        'Ignoring rules when flying for fun',
-        'Refusing to help beginners'
-      ],
-      correctAnswer: 1,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-15',
-      question: 'Which of the following features represents the role of technology in promoting FPV safety?',
-      options: [
-        'Carbon fiber frames',
-        'Geofencing and RTH (Return-to-home)',
-        'High-speed motors',
-        'HD video recording'
-      ],
-      correctAnswer: 1,
-      category: 'Technical'
-    },
-    {
-      id: 'cbt-16',
-      question: 'Complete the core principle from the lecture note: "Technology supports safety, but..."',
-      options: [
-        '"...hardware ensures it."',
-        '"...discipline ensures safety."',
-        '"...luck plays a huge role."',
-        '"...regulations enforce it."'
-      ],
-      correctAnswer: 1,
-      category: 'Theoretical'
-    },
-    {
-      id: 'cbt-17',
-      question: 'By standard conventions, which of the following operations is typically exempted from civil aviation regulations?',
-      options: [
-        'Commercial photography',
-        'Recreational racing',
-        'Military operations',
-        'Agricultural spraying'
-      ],
-      correctAnswer: 2,
-      category: 'Regulations'
-    },
-    {
-      id: 'cbt-18',
-      question: 'What is the voltage of a 6s LiPo battery when fully charged (maximum voltage)?',
-      options: [
-        '22.2v',
-        '24.0v',
-        '25.2v',
-        '14.8v'
-      ],
-      correctAnswer: 2,
-      category: 'Technical'
-    },
-    {
-      id: 'cbt-19',
-      question: 'To reduce accidents in FPV operations, the lecture recommends all of the following EXCEPT:',
-      options: [
-        'Using checklists',
-        'Planning emergency actions',
-        'Relying solely on modern obstacle sensors',
-        'Maintaining equipment'
-      ],
-      correctAnswer: 2,
-      category: 'Safety'
-    },
-    {
-      id: 'cbt-20',
-      question: 'According to the lecture\'s conclusion, safety is not considered a restriction, but rather a form of:',
-      options: [
-        'Inconvenience',
-        'Protection',
-        'Regulation',
-        'Limitation'
-      ],
-      correctAnswer: 1,
-      category: 'Theoretical'
-    }
+    // --- Based closely on provided lecture ---
+    { id: 'cbt1-1', question: 'What are the three major variables that the FPV Drone Safety System is based on?', options: ['Speed, Altitude, and Battery Life', 'Environment, Machine, and Human Being', 'Frame, Motors, and Propellers', 'Weather, Obstacles, and Regulations'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-2', question: 'According to studies in aviation, what percentage of accidents are typically linked to human error?', options: ['Up to 30%', 'About 50%', 'Up to 70% or more', '100%'], correctAnswer: 2, category: 'Theoretical' },
+    { id: 'cbt1-3', question: 'What is the nominal and maximum voltage per cell for a standard LiPo battery?', options: ['3.3v nominal, 4.0v maximum', '3.7v nominal, 4.2v maximum', '4.5v nominal, 5.0v maximum', '3.0v nominal, 3.7v maximum'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-4', question: 'According to James Reason\'s theory of human error, accidents happen when:', options: ['Equipment malfunctions randomly.', 'Weather conditions suddenly change.', 'Multiple safety barriers fail.', 'Pilots fly in manual mode.'], correctAnswer: 2, category: 'Theoretical' },
+    { id: 'cbt1-5', question: 'Which of the following is NOT considered a common human error in FPV flying?', options: ['Flying beyond skill level', 'Ignoring battery limits', 'Using simulator practice', 'Overconfidence'], correctAnswer: 2, category: 'Theoretical' },
+    { id: 'cbt1-6', question: 'Which organization enforces drone regulations in Nigeria?', options: ['Federal Aviation Administration (FAA)', 'International Civil Aviation Organization (ICAO)', 'Nigerian Civil Aviation Authority (NCAA)', 'Briech UAS Academy'], correctAnswer: 2, category: 'Regulations' },
+    { id: 'cbt1-7', question: 'In the IMSAFE model for assessing personal safety before a flight, what does the "S" stand for?', options: ['Skill - Am I skilled enough?', 'Stress - Am I distracted or worried?', 'Sickness - Am I feeling ill?', 'Sleep - Did I get enough sleep?'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-8', question: 'If you answer "Yes" to any unsafe condition in the IMSAFE checklist, what is the required action?', options: ['Fly carefully and close to the ground.', 'Have a visual observer watch the drone.', 'Do Not Fly.', 'Take a 10-minute break before flying.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-9', question: 'Whose responsibility is it to ensure the drone maintains a safe distance from people and avoids crowds?', options: ['The Mission Coordinator', 'The Technician', 'The Pilot', 'The Visual Observer'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-10', question: 'Before arming the drone, which of the following system setups must be verified?', options: ['Correct flight mode, VTX channel, and OSD information', 'Battery brand and color', 'Wind speed at 100 meters above ground', 'The number of people watching'], correctAnswer: 0, category: 'Technical' },
+    { id: 'cbt1-11', question: 'When making a Go / No-Go decision, what should you do if you are unsure if the flight is safe?', options: ['Ask a bystander for their opinion.', 'Perform a quick test flight anyway.', 'NO GO.', 'Switch to a smaller battery.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-12', question: 'Which of the following is considered a major environmental risk that can cause issues for FPV drones?', options: ['Strong GPS signals', 'Magnetic interference', 'Clear visibility', 'Low temperatures'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-13', question: 'Which of the following describes a critical battery safety rule for handling FPV LiPo batteries?', options: ['Always discharge them completely to 0v.', 'Store them in any standard plastic container.', 'Never overcharge and store in fireproof bags.', 'Charge them immediately after a crash.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-14', question: 'A strong safety culture in the FPV drone community includes:', options: ['Hiding mistakes to avoid embarrassment', 'Reporting incidents and sharing lessons learned', 'Ignoring rules when flying for fun', 'Refusing to help beginners'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-15', question: 'Which of the following features represents the role of technology in promoting FPV safety?', options: ['Carbon fiber frames', 'Geofencing and RTH (Return-to-home)', 'High-speed motors', 'HD video recording'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-16', question: 'Complete the core principle from the lecture note: "Technology supports safety, but..."', options: ['"...hardware ensures it."', '"...discipline ensures safety."', '"...luck plays a huge role."', '"...regulations enforce it."'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt1-17', question: 'By standard conventions, which of the following operations is typically exempted from civil aviation regulations?', options: ['Commercial photography', 'Recreational racing', 'Military operations', 'Agricultural spraying'], correctAnswer: 2, category: 'Regulations' },
+    { id: 'cbt1-18', question: 'What is the voltage of a 6s LiPo battery when fully charged (maximum voltage)?', options: ['22.2v', '24.0v', '25.2v', '14.8v'], correctAnswer: 2, category: 'Technical' },
+    { id: 'cbt1-19', question: 'To reduce accidents in FPV operations, the lecture recommends all of the following EXCEPT:', options: ['Using checklists', 'Planning emergency actions', 'Relying solely on modern obstacle sensors', 'Maintaining equipment'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-20', question: 'According to the lecture\'s conclusion, safety is not considered a restriction, but rather a form of:', options: ['Inconvenience', 'Protection', 'Regulation', 'Limitation'], correctAnswer: 1, category: 'Theoretical' },
+    // --- General expanded part 1 ---
+    { id: 'cbt1-21', question: 'What does "VLOS" stand for in drone regulations?', options: ['Virtual Line Of Sight', 'Visual Line Of Sight', 'Vertical Line Operation Standard', 'Video Link Output Signal'], correctAnswer: 1, category: 'Regulations' },
+    { id: 'cbt1-22', question: 'Why is it dangerous to fly a drone behind a large concrete building?', options: ['Concrete absorbs GPS signals.', 'You may lose the radio and video link (loss of VLOS).', 'Concrete generates magnetic fields.', 'The drone will automatically switch to Acro mode.'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-23', question: 'In aviation regulations, what is the typical maximum altitude a drone is allowed to fly above ground level (AGL) in uncontrolled airspace without a waiver?', options: ['100 feet', '400 feet', '1000 feet', 'There is no limit'], correctAnswer: 1, category: 'Regulations' },
+    { id: 'cbt1-24', question: 'What should you do before plugging in the battery to an FPV drone?', options: ['Ensure the transmitter (radio) is turned on first.', 'Ensure the VTX antenna is removed.', 'Hold the propellers to prevent them from spinning.', 'Turn on the goggles before the radio.'], correctAnswer: 0, category: 'Safety' },
+    { id: 'cbt1-25', question: 'What does the Flight Controller (FC) do in an FPV drone?', options: ['Transmits the video signal.', 'Calculates motor speeds based on sensor data and pilot input.', 'Supplies raw battery voltage to the motors.', 'Records DVR footage.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-26', question: 'What component is responsible for receiving the video signal on the ground?', options: ['VTX (Video Transmitter)', 'FC (Flight Controller)', 'ESC (Electronic Speed Controller)', 'VRX (Video Receiver, inside or attached to goggles)'], correctAnswer: 3, category: 'Technical' },
+    { id: 'cbt1-27', question: 'What is the primary function of an Electronic Speed Controller (ESC)?', options: ['To control the camera angle.', 'To regulate the power from the battery to the brushless motors.', 'To transmit telemetry data to the radio.', 'To stabilize the flight in high winds.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-28', question: 'What does "kV" mean when referring to a brushless drone motor?', options: ['Kilo-Volts (Battery power rating)', 'Kinetic Velocity', 'RPM per Volt applied', 'Kick Voltage'], correctAnswer: 2, category: 'Technical' },
+    { id: 'cbt1-29', question: 'If you want more thrust and fly a larger setup, do you typically need higher or lower kV motors?', options: ['Higher kV', 'Lower kV', 'It doesn\'t matter', 'Zero kV'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt1-30', question: 'What is the standard radio frequency used for control links in most modern FPV systems (Excluding ELRS 900Mhz)?', options: ['5.8 GHz', '1.2 GHz', '2.4 GHz', '9.0 GHz'], correctAnswer: 2, category: 'Technical' },
+    { id: 'cbt1-31', question: 'What is the standard analog video frequency band used in FPV?', options: ['2.4 GHz', '5.8 GHz', '900 MHz', '433 MHz'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-32', question: 'Why is a "Failsafe" configuration critical for FPV drones?', options: ['It warns you when the battery is low.', 'It safely handles the drone if the radio connection is lost.', 'It prevents the motors from burning out.', 'It improves video quality when flying far away.'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-33', question: 'A LiPo battery starts to look "puffy" or swollen. What does this indicate?', options: ['It is fully charged.', 'It is operating perfectly.', 'It has suffered chemical damage and is a fire hazard.', 'It is cold and needs to be warmed up.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt1-34', question: 'What should you do with a swollen or physically damaged LiPo battery?', options: ['Fly it gently to use up the charge.', 'Discharge it completely using a safe method and dispose of it at a recycling center.', 'Throw it in the regular trash.', 'Store it in the refrigerator.'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-35', question: 'Which stick mode is most popular, mapping Throttle and Yaw to the left stick, and Pitch and Roll to the right stick?', options: ['Mode 1', 'Mode 2', 'Mode 3', 'Mode 4'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt1-36', question: 'In traditional FPV "Acro" mode, what happens when you center the right stick (Pitch/Roll) after a movement?', options: ['The drone automatically levels itself.', 'The drone holds its current attitude/angle.', 'The drone stops mid-air.', 'The drone returns to home.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt1-37', question: 'What does "OSD" stand for in FPV viewing?', options: ['Optical Sensor Display', 'On Screen Display', 'Over System Data', 'Operational Safety Directive'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt1-38', question: 'What critical information should always be visible on your OSD?', options: ['Current time of day at home point.', 'Battery voltage (or capacity remaining).', 'Pilot name in large letters.', 'The song currently playing.'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt1-39', question: 'What is the purpose of "Arming" a drone?', options: ['To turn on the video transmitter.', 'To calibrate the gyro sensors.', 'To electronically enable the motors to spin.', 'To begin recording flight footage.'], correctAnswer: 2, category: 'Theoretical' },
+    { id: 'cbt1-40', question: 'If your drone crashes into a bush and the motors are stuck, what is the immediate first action?', options: ['Run to the drone.', 'Disarm the drone immediately from the radio.', 'Push the throttle up to free it.', 'Turn off the goggles.'], correctAnswer: 1, category: 'Safety' },
+  ]
+};
+
+export const cbtDataPart2 = {
+  title: "Part 2: Advanced Operations & Troubleshooting",
+  description: "This advanced assessment covers complex FPV maneuvers, troubleshooting hardware/software, and advanced situational awareness.",
+  durationMinutes: 45,
+  passingScore: 70,
+  questions: [
+    { id: 'cbt2-1', question: 'What does PID stand for in flight controller tuning?', options: ['Proportional, Integral, Derivative', 'Pitch, Invert, Dive', 'Power, Intensity, Drag', 'Pilot Intent Detection'], correctAnswer: 0, category: 'Technical' },
+    { id: 'cbt2-2', question: 'If your drone oscillates rapidly (shakes) when you apply throttle, which PID value is likely too high?', options: ['P-gain', 'I-gain', 'D-gain', 'Feedforward'], correctAnswer: 0, category: 'Theoretical' },
+    { id: 'cbt2-3', question: 'What is "Prop Wash" when flying?', options: ['Cleaning the drone propellers before flight.', 'Turbulent air created by the drone descending into its own dirty air path, causing shaking.', 'A setting in Betaflight to clean motors.', 'Rain hitting the spinning props.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-4', question: 'Which Betaflight feature helps reduce Prop Wash handling issues?', options: ['Air mode', 'RPM Filtering (Bidirectional Dshot)', 'Vbat Compensation', 'GPS Rescue'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-5', question: 'What does the "D-gain" do in a PID loop?', options: ['Dampens the P-term to prevent overshooting.', 'Increases the speed of the motors.', 'Controls how fast the drone flips.', 'Maintains the angle over time.'], correctAnswer: 0, category: 'Theoretical' },
+    { id: 'cbt2-6', question: 'What happens if your D-gain is set way too high?', options: ['The motors will run very hot and could burn out.', 'The quad will flip infinitely.', 'The video signal will drop.', 'The battery will last twice as long.'], correctAnswer: 0, category: 'Technical' },
+    { id: 'cbt2-7', question: 'What is "Betaflight"?', options: ['A flight simulator program.', 'An open-source firmware used on flight controllers.', 'A popular brand of FPV drone.', 'A specific radio protocol.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-8', question: 'What protocol is most commonly used today for communication between the Receiver (RX) and the Flight Controller?', options: ['PWM', 'PPM', 'CRSF (Crossfire / ELRS) or SBUS', 'Analog'], correctAnswer: 2, category: 'Technical' },
+    { id: 'cbt2-9', question: 'What protocol communicates between the Flight Controller and the ESCs to dictate motor speed?', options: ['I2C', 'Dshot', 'SPI', 'UART'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-10', question: 'If one motor twitches but won\'t spin up completely upon arming, what is the most likely cause?', options: ['Bad VTX antenna.', 'A disconnected or broken motor wire / bad ESC phase.', 'Low radio battery.', 'Incorrect PID tune.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-11', question: 'What does "Rates" mean in FPV flying?', options: ['The price of the drone components.', 'How fast the drone rotates around its axes in degrees per second.', 'The latency of the video feed.', 'The frequency of the radio link.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-12', question: 'What does adding "Expo" (Exponential) to your rates do?', options: ['Makes the full stick deflection rotate faster.', 'Softens the stick sensitivity around the center for smoother precise flying, while keeping high maximum rotation speed.', 'Increases throttle power.', 'Automatically levels the drone.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-13', question: 'For long-range FPV operations (where allowed securely), which radio control frequency is often preferred for better penetration?', options: ['5.8 GHz', '900 MHz (like ELRS or Crossfire)', '2.4 GHz', '1.2 GHz'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-14', question: 'What does "Multipathing" refer to in analog FPV video?', options: ['Flying through multiple gates at once.', 'Video signal bouncing off objects (like metal or ground) causing interference lines or split images in the goggles.', 'Using two radios at the same time.', 'Following multiple drones.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-15', question: 'Which type of antenna setup is used on goggles to combat multipathing and improve range?', options: ['A single linear whip antenna.', 'Diversity receivers with one omnidirectional (circular) antenna and one directional (patch) antenna.', 'No antennas are needed.', 'A direct wire connection to the drone.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-16', question: 'When flying with other pilots, why is it important to organize VTX channels?', options: ['To save battery.', 'To ensure you get the best flight footage.', 'To avoid blasting video over another pilot\'s frequency, causing them to crash.', 'To share telemetry data.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt2-17', question: 'What is the "Raceband" separation that allows up to 8 pilots to fly simultaneously?', options: ['10 MHz between channels', '37 MHz between channels', '1 MHz between channels', '100 MHz between channels'], correctAnswer: 1, category: 'Regulations' },
+    { id: 'cbt2-18', question: 'What should you do to your VTX power if your drone crashes and you cannot find it immediately?', options: ['Leave it at max power to maintain video.', 'Arm the drone to make noise.', 'Disarm and, if possible (via switch or Pit Mode), lower VTX power to prevent it from overheating without airflow.', 'Turn off your radio.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt2-19', question: 'If you lose video link entirely while flying high in the air, what is standard emergency procedure if no GPS rescue is available?', options: ['Disarm and let it fall to prevent a fly-away into populated areas.', 'Push the throttle strictly up.', 'Move sticks randomly hoping it turns around.', 'Take off the goggles and run.'], correctAnswer: 0, category: 'Safety' },
+    { id: 'cbt2-20', question: 'When soldering a battery connector (like an XT60) to a drone, why must you do it correctly without cold solder joints?', options: ['A loose joint will increase resistance, get very hot, and can melt under high current loads.', 'It will void the warranty of the battery.', 'It will change the GPS coordinates.', 'It looks better on camera.'], correctAnswer: 0, category: 'Technical' },
+    { id: 'cbt2-21', question: 'What is the purpose of a capacitor soldered to the main battery pads of an ESC?', options: ['To give the drone more speed.', 'To filter out electrical noise, voltage spikes, and prevent video interference.', 'To safely discharge the battery after flight.', 'To provide backup power to the GPS.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-22', question: 'If you build a drone and upon arming, it instantly flips over aggressively, what is the most common cause?', options: ['Battery is too big.', 'Props installed upside down, motor order incorrect, or FC orientation wrong.', 'Radio is not bound.', 'Camera lens is dirty.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-23', question: 'What does "Air Mode" do in Betaflight?', options: ['Allows the motors to spin and maintain PID authority even at zero throttle, enabling control during freefalls.', 'Automatically lands the drone.', 'Disarms the drone if it goes too high.', 'Controls the altitude using a barometer.'], correctAnswer: 0, category: 'Theoretical' },
+    { id: 'cbt2-24', question: 'True or False: If you install the propellers pushing air upwards but the motors are spinning the wrong direction, the drone will fly normally.', options: ['True', 'False', 'Only in Acro mode', 'Only in Angle mode'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-25', question: 'What is "Turtle Mode" (Crash Flip) used for?', options: ['Slowing down the drone for cinematic shots.', 'Reversing motor direction temporarily to flip a crashed drone back upright.', 'Protecting the drone in water.', 'Slowly returning to home.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-26', question: 'To use Turtle Mode safely, what must you quickly check in your goggles?', options: ['Battery voltage', 'Ensure the propellers are clear of tall grass or debris to prevent burning an ESC when reversing.', 'The compass direction', 'Current altitude'], correctAnswer: 1, category: 'Safety' },
+    { id: 'cbt2-27', question: 'What sensor provides the drone with awareness of its rotational speed?', options: ['Barometer', 'Magnetometer (Compass)', 'Gyroscope', 'Accelerometer'], correctAnswer: 2, category: 'Technical' },
+    { id: 'cbt2-28', question: 'What sensor provides the drone with awareness of gravity and level attitude (used in Angle/Horizon mode)?', options: ['Barometer', 'Thermometer', 'Gyroscope', 'Accelerometer'], correctAnswer: 3, category: 'Technical' },
+    { id: 'cbt2-29', question: 'Why is it recommended to conformal coat a drone\'s electronics?', options: ['To make it fly faster through the air.', 'To protect the circuits from water, dew, and wet grass shorts.', 'To cool down the VTX.', 'To change the color of the board.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-30', question: 'What is the most sensitive electronic component on a drone to handle static discharge or reverse polarity?', options: ['The carbon frame', 'The Flight Controller IC / MCU', 'The plastic standoffs', 'The battery straps'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-31', question: 'If you want to legally carry packages using a drone for commercial purposes in most jurisdictions, what must you do?', options: ['Use a larger 6s battery.', 'Obtain a specific operational waiver or Part 135 certification.', 'Put a siren on the drone.', 'Nothing, it is entirely legal everywhere.'], correctAnswer: 1, category: 'Regulations' },
+    { id: 'cbt2-32', question: 'What should you do immediately if someone walks onto your flying field while you are airborne?', options: ['Dive bomb them to scare them off.', 'Disarm instantly regardless of where you are.', 'Navigate cleanly away from them and land safely to address the situation.', 'Keep flying but stay high.'], correctAnswer: 2, category: 'Safety' },
+    { id: 'cbt2-33', question: 'A "SmartAudio" or "Tramp" protocol wire connects your FC to your VTX. What does this do?', options: ['Records audio from the flight.', 'Allows the flight controller (and pilot via OSD/radio) to change VTX channels and power levels remotely.', 'Charges the battery.', 'Connects to Spotify.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-34', question: 'What happens if you plug an antenna into the VTX, power it up, but the antenna adapter is SMA and the VTX is RP-SMA (a pin mismatch)?', options: ['It will work fine with slightly less range.', 'The VTX will transmit without an actual antenna connection, which can overheat and permanently damage it within minutes.', 'The video will be black and white.', 'The drone will not arm.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-35', question: 'What is the difference between LHCP and RHCP antennas?', options: ['They use different radio frequencies.', 'Left-Hand Circular Polarization vs Right-Hand; mixing them causes massive signal loss (around -20dB).', 'Low High Current Power vs Right High Current Power.', 'One is for video, one is for radio control.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-36', question: 'What does "RSSI" stand for and what does it measure?', options: ['Relative Signal Strength Indicator; measures the strength of the radio control link holding the drone.', 'Rotational Speed Sensor Index; measures motor spins.', 'Rear Safety Switch Identifier; a failsafe parameter.', 'Remote System Status Information; battery gauge.'], correctAnswer: 0, category: 'Theoretical' },
+    { id: 'cbt2-37', question: 'What is "LQ" (Link Quality) in modern RC systems like Crossfire or ELRS?', options: ['The resolution of the video stream.', 'The percentage of command packets properly received by the drone.', 'The quality of the battery cells.', 'The audio clarity. '], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-38', question: 'Why is LQ often considered more important than RSSI in digital radio links?', options: ['RSSI means nothing on modern systems.', 'LQ tells you directly if you are actually dropping control data packets, not just signal power.', 'LQ measures video, RSSI measures radio.', 'LQ is easier to read on the OSD.'], correctAnswer: 1, category: 'Theoretical' },
+    { id: 'cbt2-39', question: 'What is a "Blackbox" in Betaflight?', options: ['A literal black box housing the battery.', 'The data logging system that records gyro and stick inputs for PID tuning and crash diagnosis.', 'The video recorder in the goggles.', 'The casing for the radio receiver.'], correctAnswer: 1, category: 'Technical' },
+    { id: 'cbt2-40', question: 'If you want to perform a "Split-S" maneuver, what sequence of actions do you take?', options: ['Roll 360 degrees, then pitch back.', 'Roll 180 degrees inverted, then pitch back (pull up) into a half-loop downwards.', 'Throttle up heavily, then disarm.', 'Yaw 180 degrees, then roll left.'], correctAnswer: 1, category: 'Theoretical' },
   ]
 };

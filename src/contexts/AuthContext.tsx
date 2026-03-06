@@ -22,6 +22,10 @@ export interface User {
   role: 'admin' | 'student' | 'guest';
   rank?: string;
   serviceNumber?: string;
+  cbt1Score?: number | null;
+  cbt1Status?: 'passed' | 'failed' | 'not_started';
+  cbt2Score?: number | null;
+  cbt2Status?: 'passed' | 'failed' | 'not_started';
 }
 
 interface AuthContextType {
