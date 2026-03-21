@@ -126,7 +126,7 @@ import path from 'path';
         <div class="event-number">01.</div>
         <div class="event-detail">
           <div class="event-title">Opening Remark</div>
-          <div class="event-assignee">By The Training Manager</div>
+          <div class="event-assignee">By The Group Training Manager</div>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ import path from 'path';
         <div class="event-number">02.</div>
         <div class="event-detail">
           <div class="event-title">Introduction of Managers and Staffs Present at the Ceremony</div>
-          <div class="event-assignee">By The Training Manager</div>
+          <div class="event-assignee">By The Group Training Manager</div>
         </div>
       </div>
 
